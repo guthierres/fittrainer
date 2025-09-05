@@ -2,20 +2,7 @@
   publish = "dist"
   command = "npm run build"
 
-# Handle static assets first - these should be served as-is
-[[redirects]]
-  from = "/assets/*"
-  to = "/assets/:splat"
-  status = 200
-
-# Handle client-side routing - redirect all non-asset requests to index.html
 [[redirects]]
   from = "/*"
   to = "/index.html"
   status = 200
-  conditions = {Role = [""], Country = [""], Language = [""]}
-
-[[headers]]
-  for = "/assets/*"
-  [headers.values]
-    Cache-Control = "public, max-age=31536000, immutable"

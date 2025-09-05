@@ -1,3 +1,1 @@
-# Assets should be served directly, everything else goes to index.html for SPA routing
-/assets/* /assets/:splat 200
-/* /index.html 200
+/*    /index.html   200
