@@ -22,7 +22,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import QuickWorkoutCreator from "./QuickWorkoutCreator";
 import QuickDietCreator from "./QuickDietCreator";
-import EnhancedExerciseSelector from "./EnhancedExerciseSelector";
+import WorkoutPlanEditor from "./WorkoutPlanEditor";
 
 interface Student {
   id: string;
@@ -627,6 +627,21 @@ const StudentProfile = ({ student, trainerId, onClose }: StudentProfileProps) =>
           />
         </DialogContent>
       </Dialog>
+
+      {/* Workout Editor Dialog */}
+      {selectedWorkoutPlan && (
+        <WorkoutPlanEditor
+          workoutPlan={selectedWorkoutPlan}
+          studentId={student.id}
+          trainerId={trainerId}
+          isOpen={showWorkoutEditor}
+          onClose={() => {
+            setShowWorkoutEditor(false);
+            setSelectedWorkoutPlan(null);
+          }}
+          onSuccess={handleWorkoutSuccess}
+        />
+      )}
     </div>
   );
 };
