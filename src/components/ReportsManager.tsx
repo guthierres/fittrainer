@@ -1,16 +1,23 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Input } from "@/components/ui/input";
-import { DateRange } from "react-day-picker";
-import { addDays, format, subDays } from "date-fns";
-import { Calendar } from "@/components/ui/calendar";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { useToast } from "@/hooks/use-toast";
+import { 
+  BarChart3, 
+  Download, 
+  TrendingUp,
+  Users,
+  Activity,
+  Target,
+  Calendar,
+  FileText,
+  Printer
+} from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { BarChart3, Download, FileText, Printer, Activity, Target, TrendingUp } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
+import { addDays, format, subDays } from "date-fns";
 
 interface Student {
   id: string;
@@ -19,7 +26,6 @@ interface Student {
 
 interface ReportData {
   student_name: string;
-  student_cpf?: string;
   student_email?: string;
   student_phone?: string;
   trainer_name: string;
@@ -38,7 +44,7 @@ interface ReportData {
 const ReportsManager = ({ trainerId }: { trainerId: string }) => {
   const [students, setStudents] = useState<Student[]>([]);
   const [selectedStudent, setSelectedStudent] = useState<string>("all");
-  const [dateRange, setDateRange] = useState<DateRange | undefined>({
+  const [dateRange, setDateRange] = useState({
     from: subDays(new Date(), 30),
     to: new Date(),
   });
@@ -218,7 +224,6 @@ const ReportsManager = ({ trainerId }: { trainerId: string }) => {
                             DADOS DO ALUNO
       ──────────────────────────────────────────────────────────────
       Nome: ${report.student_name}
-      ${report.student_cpf ? `CPF: ${report.student_cpf}` : ''}
       ${report.student_email ? `E-mail: ${report.student_email}` : ''}
       ${report.student_phone ? `Telefone: ${report.student_phone}` : ''}
       
@@ -320,7 +325,7 @@ const ReportsManager = ({ trainerId }: { trainerId: string }) => {
         <CardContent className="space-y-4">
           <div className="grid md:grid-cols-2 gap-4">
             <div className="space-y-2">
-              <label className="text-sm font-medium">Período</label>
+              <label className="text-sm font-medium">Data Início</label>
               <Input
                 type="date"
                 value={dateRange?.from ? format(dateRange.from, "yyyy-MM-dd") : ""}

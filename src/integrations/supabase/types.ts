@@ -591,6 +591,10 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: string
       }
+      is_trainer_or_student_access: {
+        Args: { student_id: string; trainer_id: string }
+        Returns: boolean
+      }
     }
     Enums: {
       [_ in never]: never
