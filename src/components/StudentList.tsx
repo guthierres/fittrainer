@@ -31,6 +31,20 @@ interface Student {
   goals?: string[];
   unique_link_token: string;
   created_at: string;
+  workout_plans?: {
+    id: string;
+    name: string;
+    active: boolean;
+    workout_sessions: {
+      id: string;
+      name: string;
+    }[];
+  }[];
+  diet_plans?: {
+    id: string;
+    name: string;
+    active: boolean;
+  }[];
 }
 
 interface StudentListProps {
@@ -55,7 +69,20 @@ const StudentList = ({ trainerId }: StudentListProps) => {
       setIsLoading(true);
       const { data, error } = await supabase
         .from("students")
-        .select("*")
+        .select(`
+          *,
+          workout_plans(
+            id,
+            name,
+            active,
+            workout_sessions(id, name)
+          ),
+          diet_plans(
+            id,
+            name,
+            active
+          )
+        `)
         .eq("personal_trainer_id", trainerId)
         .eq("active", true)
         .order("created_at", { ascending: false });
@@ -263,6 +290,41 @@ const StudentList = ({ trainerId }: StudentListProps) => {
                 </div>
               </div>
             )}
+
+            {/* Training Plans Summary */}
+            <div className="space-y-2">
+              <div className="grid grid-cols-2 gap-4 text-sm">
+                <div className="flex items-center gap-2">
+                  <Dumbbell className="h-4 w-4 text-muted-foreground" />
+                  <span className="font-medium">
+                    Treinos: {student.workout_plans?.filter(plan => plan.active).length || 0}
+                  </span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Utensils className="h-4 w-4 text-muted-foreground" />
+                  <span className="font-medium">
+                    Dietas: {student.diet_plans?.filter(plan => plan.active).length || 0}
+                  </span>
+                </div>
+              </div>
+
+              {/* Active Workout Plans */}
+              {student.workout_plans && student.workout_plans.filter(plan => plan.active).length > 0 && (
+                <div className="space-y-1">
+                  <span className="text-xs font-medium text-muted-foreground">Treinos Ativos:</span>
+                  {student.workout_plans.filter(plan => plan.active).slice(0, 2).map(plan => (
+                    <div key={plan.id} className="text-xs bg-primary/10 text-primary px-2 py-1 rounded">
+                      {plan.name} ({plan.workout_sessions?.length || 0} sessões)
+                    </div>
+                  ))}
+                  {student.workout_plans.filter(plan => plan.active).length > 2 && (
+                    <div className="text-xs text-muted-foreground">
+                      +{student.workout_plans.filter(plan => plan.active).length - 2} mais
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
 
             {/* Actions */}
             <div className="pt-2 space-y-2">

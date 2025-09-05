@@ -9,12 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { X, Plus, Dumbbell } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-
-interface Exercise {
-  id: string;
-  name: string;
-  category_id: string;
-}
+import EnhancedExerciseSelector from "./EnhancedExerciseSelector";
 
 interface ExerciseCategory {
   id: string;
@@ -66,31 +61,27 @@ const QuickWorkoutCreator = ({ studentId, studentName, trainerId, onClose, onSuc
     duration_weeks: 4,
   });
   
-  const [exercises, setExercises] = useState<Exercise[]>([]);
   const [categories, setCategories] = useState<ExerciseCategory[]>([]);
   const [sessions, setSessions] = useState<WorkoutSession[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
-    loadData();
+    loadCategories();
   }, []);
 
-  const loadData = async () => {
+  const loadCategories = async () => {
     try {
-      // Load exercises and categories in parallel
-      const [exercisesResponse, categoriesResponse] = await Promise.all([
-        supabase.from("exercises").select("id, name, category_id").order("name"),
-        supabase.from("exercise_categories").select("id, name, emoji").order("name")
-      ]);
+      const { data, error } = await supabase
+        .from("exercise_categories")
+        .select("id, name, emoji")
+        .order("name");
 
-      if (exercisesResponse.error) throw exercisesResponse.error;
-      if (categoriesResponse.error) throw categoriesResponse.error;
-
-      setExercises(exercisesResponse.data || []);
-      setCategories(categoriesResponse.data || []);
+      if (!error && data) {
+        setCategories(data);
+      }
     } catch (error) {
-      console.error("Error loading data:", error);
+      console.error("Error loading categories:", error);
     }
   };
 
@@ -130,55 +121,10 @@ const QuickWorkoutCreator = ({ studentId, studentName, trainerId, onClose, onSuc
     ));
   };
 
-  const addExerciseToSession = (sessionIndex: number, exerciseId: string) => {
-    const exercise = exercises.find(e => e.id === exerciseId);
-    if (!exercise) return;
-
-    const newExercise: WorkoutExercise = {
-      exercise_id: exerciseId,
-      exercise_name: exercise.name,
-      sets: 3,
-      reps_min: 8,
-      reps_max: 12,
-      rest_minutes: 1,
-      order_index: 0,
-    };
-
-    setSessions(prev => prev.map((session, idx) => {
-      if (idx === sessionIndex) {
-        const updatedExercises = [...session.exercises, newExercise];
-        return {
-          ...session,
-          exercises: updatedExercises.map((ex, exIdx) => ({ ...ex, order_index: exIdx }))
-        };
-      }
-      return session;
-    }));
-  };
-
-  const updateExerciseInSession = (sessionIndex: number, exerciseIndex: number, field: string, value: number) => {
-    setSessions(prev => prev.map((session, idx) => {
-      if (idx === sessionIndex) {
-        const updatedExercises = session.exercises.map((ex, exIdx) => 
-          exIdx === exerciseIndex ? { ...ex, [field]: value } : ex
-        );
-        return { ...session, exercises: updatedExercises };
-      }
-      return session;
-    }));
-  };
-
-  const removeExerciseFromSession = (sessionIndex: number, exerciseIndex: number) => {
-    setSessions(prev => prev.map((session, idx) => {
-      if (idx === sessionIndex) {
-        const updatedExercises = session.exercises.filter((_, exIdx) => exIdx !== exerciseIndex);
-        return {
-          ...session,
-          exercises: updatedExercises.map((ex, exIdx) => ({ ...ex, order_index: exIdx }))
-        };
-      }
-      return session;
-    }));
+  const updateSessionExercises = (sessionIndex: number, exercises: WorkoutExercise[]) => {
+    setSessions(prev => prev.map((session, idx) => 
+      idx === sessionIndex ? { ...session, exercises } : session
+    ));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -266,7 +212,7 @@ const QuickWorkoutCreator = ({ studentId, studentName, trainerId, onClose, onSuc
   };
 
   return (
-    <Card className="max-w-4xl mx-auto">
+    <Card className="max-w-5xl mx-auto">
       <CardHeader>
         <div className="flex items-center justify-between">
           <CardTitle className="flex items-center gap-2">
@@ -295,22 +241,15 @@ const QuickWorkoutCreator = ({ studentId, studentName, trainerId, onClose, onSuc
             </div>
             
             <div className="space-y-2">
-              <Label htmlFor="frequency">Frequência Semanal</Label>
-              <Select
-                value={formData.frequency_per_week.toString()}
-                onValueChange={(value) => setFormData(prev => ({ ...prev, frequency_per_week: parseInt(value) }))}
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {[1,2,3,4,5,6,7].map(freq => (
-                    <SelectItem key={freq} value={freq.toString()}>
-                      {freq}x por semana
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <Label htmlFor="duration">Duração (semanas)</Label>
+              <Input
+                id="duration"
+                type="number"
+                min="1"
+                max="52"
+                value={formData.duration_weeks}
+                onChange={(e) => setFormData(prev => ({ ...prev, duration_weeks: parseInt(e.target.value) || 4 }))}
+              />
             </div>
           </div>
 
@@ -331,7 +270,7 @@ const QuickWorkoutCreator = ({ studentId, studentName, trainerId, onClose, onSuc
               <Label>Dias de Treino ({sessions.length} dia{sessions.length !== 1 ? 's' : ''})</Label>
               <Select onValueChange={(day) => addTrainingDay(parseInt(day))}>
                 <SelectTrigger className="w-48">
-                  <SelectValue placeholder="Selecionar dia" />
+                  <SelectValue placeholder="+ Adicionar dia" />
                 </SelectTrigger>
                 <SelectContent>
                   {DAYS_OF_WEEK.filter(day => 
@@ -361,14 +300,15 @@ const QuickWorkoutCreator = ({ studentId, studentName, trainerId, onClose, onSuc
           </div>
 
           {/* Training Sessions */}
-          {sessions.map((session, sessionIndex) => {
-            const categoryExercises = exercises.filter(ex => ex.category_id === session.category_id);
-            
+          {sessions.map((session, sessionIndex) => {            
             return (
-              <Card key={session.day} className="border-2">
-                <CardHeader className="pb-3">
+              <Card key={session.day} className="border-2 border-primary/20">
+                <CardHeader className="pb-4">
                   <div className="flex items-center justify-between">
-                    <CardTitle className="text-lg">
+                    <CardTitle className="text-lg flex items-center gap-2">
+                      <div className="bg-primary text-primary-foreground rounded-full w-8 h-8 flex items-center justify-center text-sm font-medium">
+                        {sessionIndex + 1}
+                      </div>
                       {DAYS_OF_WEEK.find(d => d.value === session.day)?.label}
                     </CardTitle>
                     <Button
@@ -381,7 +321,7 @@ const QuickWorkoutCreator = ({ studentId, studentName, trainerId, onClose, onSuc
                     </Button>
                   </div>
                 </CardHeader>
-                <CardContent className="space-y-4">
+                <CardContent className="space-y-6">
                   {/* Category Selection */}
                   <div className="space-y-2">
                     <Label>Categoria do Treino</Label>
@@ -410,95 +350,35 @@ const QuickWorkoutCreator = ({ studentId, studentName, trainerId, onClose, onSuc
                     </Select>
                   </div>
 
-                  {/* Exercise Selection */}
+                  {/* Enhanced Exercise Selection */}
                   {session.category_id && (
-                    <div className="space-y-2">
-                      <Label>Adicionar Exercícios</Label>
-                      <Select
-                        onValueChange={(exerciseId) => addExerciseToSession(sessionIndex, exerciseId)}
-                        key={session.exercises.length} // Reset selection after adding
-                      >
-                        <SelectTrigger>
-                          <SelectValue placeholder={`Escolher exercício de ${session.category_name}`} />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {categoryExercises.map(exercise => (
-                            <SelectItem key={exercise.id} value={exercise.id}>
-                              {exercise.name}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  )}
-
-                  {/* Exercise List */}
-                  {session.exercises.length > 0 && (
-                    <div className="space-y-3">
-                      <Label className="text-sm font-medium">Exercícios Selecionados:</Label>
-                      {session.exercises.map((exercise, idx) => (
-                        <div key={idx} className="grid grid-cols-6 gap-2 items-end p-3 bg-muted rounded-lg">
-                          <div className="col-span-2">
-                            <Label className="text-xs font-medium">{exercise.exercise_name}</Label>
-                          </div>
-                          <div>
-                            <Label className="text-xs">Séries</Label>
-                            <Input
-                              type="number"
-                              value={exercise.sets}
-                              onChange={(e) => updateExerciseInSession(sessionIndex, idx, 'sets', parseInt(e.target.value) || 0)}
-                              min="1"
-                              max="10"
-                            />
-                          </div>
-                          <div>
-                            <Label className="text-xs">Reps</Label>
-                            <div className="flex gap-1">
-                              <Input
-                                type="number"
-                                value={exercise.reps_min}
-                                onChange={(e) => updateExerciseInSession(sessionIndex, idx, 'reps_min', parseInt(e.target.value) || 0)}
-                                min="1"
-                                placeholder="Min"
-                              />
-                              <Input
-                                type="number"
-                                value={exercise.reps_max}
-                                onChange={(e) => updateExerciseInSession(sessionIndex, idx, 'reps_max', parseInt(e.target.value) || 0)}
-                                min="1"
-                                placeholder="Max"
-                              />
-                            </div>
-                          </div>
-                          <div>
-                            <Label className="text-xs">Descanso (min)</Label>
-                            <Input
-                              type="number"
-                              step="0.5"
-                              value={exercise.rest_minutes}
-                              onChange={(e) => updateExerciseInSession(sessionIndex, idx, 'rest_minutes', parseFloat(e.target.value) || 0)}
-                              min="0"
-                            />
-                          </div>
-                          <Button
-                            type="button"
-                            variant="outline"
-                            size="sm"
-                            onClick={() => removeExerciseFromSession(sessionIndex, idx)}
-                          >
-                            <X className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      ))}
-                    </div>
+                    <EnhancedExerciseSelector
+                      selectedCategory={session.category_id}
+                      selectedExercises={session.exercises}
+                      onExercisesChange={(exercises) => updateSessionExercises(sessionIndex, exercises)}
+                    />
                   )}
                 </CardContent>
               </Card>
             );
           })}
 
+          {sessions.length === 0 && (
+            <Card className="border-dashed">
+              <CardContent className="text-center py-8">
+                <Dumbbell className="h-12 w-12 text-muted-foreground mx-auto mb-4 opacity-50" />
+                <p className="text-muted-foreground">
+                  Nenhum dia de treino selecionado
+                </p>
+                <p className="text-sm text-muted-foreground">
+                  Use o seletor acima para adicionar dias de treino
+                </p>
+              </CardContent>
+            </Card>
+          )}
+
           {/* Submit Buttons */}
-          <div className="flex gap-2 pt-4">
+          <div className="flex gap-2 pt-4 border-t">
             <Button type="button" variant="outline" onClick={onClose} className="flex-1">
               Cancelar
             </Button>
