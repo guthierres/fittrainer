@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { 
   Shield, 
@@ -16,10 +17,12 @@ import {
   UserCheck,
   UserX,
   Search,
-  Download
+  Download,
+  UserPlus
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import CreatePersonalTrainer from "@/components/CreatePersonalTrainer";
 
 interface PersonalTrainer {
   id: string;
@@ -27,6 +30,7 @@ interface PersonalTrainer {
   cpf: string;
   email?: string;
   phone?: string;
+  birth_date?: string;
   cref?: string;
   specializations?: string[];
   active: boolean;
@@ -146,6 +150,7 @@ const SuperAdmin = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [trainers, setTrainers] = useState<PersonalTrainer[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
+  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [stats, setStats] = useState({
     totalTrainers: 0,
     activeTrainers: 0,
@@ -174,7 +179,8 @@ const SuperAdmin = () => {
           students!inner(count),
           workout_plans!inner(count),
           diet_plans!inner(count)
-        `);
+        `)
+        .order("created_at", { ascending: false });
 
       if (!error && data) {
         setTrainers(data);
@@ -238,23 +244,46 @@ const SuperAdmin = () => {
         cpf: t.cpf,
         email: t.email || 'N/A',
         telefone: t.phone || 'N/A',
+        dataNascimento: t.birth_date ? new Date(t.birth_date).toLocaleDateString('pt-BR') : 'N/A',
         cref: t.cref || 'N/A',
         status: t.active ? 'Ativo' : 'Inativo',
-        especialidades: t.specializations?.join(', ') || 'N/A'
+        especialidades: t.specializations?.join(', ') || 'N/A',
+        dataCadastro: new Date(t.created_at).toLocaleDateString('pt-BR')
       }))
     };
 
-    const blob = new Blob([JSON.stringify(reportData, null, 2)], {
-      type: 'application/json'
+    // Generate CSV format for better compatibility
+    const csvContent = [
+      // Header
+      'Nome,CPF,Email,Telefone,Data Nascimento,CREF,Status,Especialidades,Data Cadastro',
+      // Data rows
+      ...reportData.trainers.map(t => 
+        `"${t.nome}","${t.cpf}","${t.email}","${t.telefone}","${t.dataNascimento}","${t.cref}","${t.status}","${t.especialidades}","${t.dataCadastro}"`
+      )
+    ].join('\n');
+
+    const blob = new Blob([csvContent], {
+      type: 'text/csv;charset=utf-8;'
     });
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
-    link.download = `relatorio-sistema-${new Date().toISOString().split('T')[0]}.json`;
+    link.download = `relatorio-personal-trainers-${new Date().toISOString().split('T')[0]}.csv`;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
     URL.revokeObjectURL(url);
+
+    toast({
+      title: "Relatório gerado",
+      description: "Relatório de personal trainers exportado com sucesso!",
+    });
+  };
+
+  const handleCreateSuccess = () => {
+    setIsCreateDialogOpen(false);
+    loadTrainers();
+    loadStats();
   };
 
   const handleLogout = () => {
@@ -368,10 +397,16 @@ const SuperAdmin = () => {
                   className="pl-10"
                 />
               </div>
-              <Button onClick={generateSystemReport} variant="outline">
-                <Download className="h-4 w-4 mr-2" />
-                Exportar Relatório
-              </Button>
+              <div className="flex gap-2">
+                <Button onClick={() => setIsCreateDialogOpen(true)}>
+                  <UserPlus className="h-4 w-4 mr-2" />
+                  Cadastrar Personal
+                </Button>
+                <Button onClick={generateSystemReport} variant="outline">
+                  <Download className="h-4 w-4 mr-2" />
+                  Exportar Relatório
+                </Button>
+              </div>
             </div>
 
             <div className="grid gap-4">
@@ -395,6 +430,7 @@ const SuperAdmin = () => {
                           </div>
                           <div>
                             <p><strong>CREF:</strong> {trainer.cref || 'N/A'}</p>
+                            <p><strong>Data de Nascimento:</strong> {trainer.birth_date ? new Date(trainer.birth_date).toLocaleDateString('pt-BR') : 'N/A'}</p>
                             <p><strong>Especialidades:</strong> {trainer.specializations?.join(', ') || 'N/A'}</p>
                             <p><strong>Cadastrado em:</strong> {new Date(trainer.created_at).toLocaleDateString('pt-BR')}</p>
                           </div>
@@ -436,6 +472,16 @@ const SuperAdmin = () => {
             </Card>
           </TabsContent>
         </Tabs>
+
+        {/* Create Personal Trainer Dialog */}
+        <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
+          <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+            <CreatePersonalTrainer
+              onClose={() => setIsCreateDialogOpen(false)}
+              onSuccess={handleCreateSuccess}
+            />
+          </DialogContent>
+        </Dialog>
       </div>
     </div>
   );
