@@ -21,6 +21,7 @@ import CreateStudent from "@/components/CreateStudent";
 import WorkoutManager from "@/components/WorkoutManager";
 import DietManager from "@/components/DietManager";
 import ReportsManager from "@/components/ReportsManager";
+import ExerciseManager from "@/components/ExerciseManager";
 
 interface PersonalTrainer {
   id: string;
@@ -187,8 +188,9 @@ const Dashboard = () => {
 
         {/* Main Content */}
         <Tabs defaultValue="students" className="space-y-4">
-          <TabsList className="grid grid-cols-4 w-full max-w-2xl">
+          <TabsList className="grid grid-cols-5 w-full max-w-3xl">
             <TabsTrigger value="students">Alunos</TabsTrigger>
+            <TabsTrigger value="exercises">Exercícios</TabsTrigger>
             <TabsTrigger value="workouts">Treinos</TabsTrigger>
             <TabsTrigger value="diets">Dietas</TabsTrigger>
             <TabsTrigger value="reports">Relatórios</TabsTrigger>
@@ -215,6 +217,10 @@ const Dashboard = () => {
             ) : (
               <StudentList trainerId={trainer.id} />
             )}
+          </TabsContent>
+
+          <TabsContent value="exercises" className="space-y-4">
+            <ExerciseManager trainerId={trainer.id} />
           </TabsContent>
 
           <TabsContent value="workouts" className="space-y-4">
