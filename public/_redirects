@@ -1,1 +1,2 @@
-/*    /index.html   200
+# Handle client-side routing - only redirect HTML requests to index.html
+/*    /index.html   200   !  # Only apply if no matching file exists
