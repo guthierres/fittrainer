@@ -216,32 +216,32 @@ const EditWorkoutSession = ({ session, isOpen, onClose, onSuccess }: EditWorkout
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="w-full h-full sm:h-auto sm:max-w-5xl sm:max-h-[90vh] p-0 gap-0 flex flex-col">
-        <DialogHeader className="px-4 sm:px-6 py-4 border-b flex-shrink-0">
-          <DialogTitle className="flex items-center gap-2 text-base sm:text-lg">
-            <Dumbbell className="h-4 w-4 sm:h-5 sm:w-5" />
-            <span className="truncate">Editar Treino - {session.name}</span>
+      <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2">
+            <Dumbbell className="h-5 w-5" />
+            Editar Treino - {session.name}
+            <span className="text-sm text-muted-foreground">
+              ({DAYS_OF_WEEK.find(d => d.value === session.day_of_week)?.label})
+            </span>
           </DialogTitle>
-          <p className="text-xs sm:text-sm text-muted-foreground mt-1">
-            {DAYS_OF_WEEK.find(d => d.value === session.day_of_week)?.label}
-          </p>
         </DialogHeader>
 
-        <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-4">
+        <div className="space-y-6">
           {/* Add Exercise Section */}
-          <Card className="border">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-base sm:text-lg">Adicionar Exercício</CardTitle>
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg">Adicionar Exercício</CardTitle>
             </CardHeader>
-            <CardContent className="space-y-3">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <CardContent className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label className="text-sm font-medium">Categoria</Label>
+                  <Label>Categoria</Label>
                   <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-                    <SelectTrigger className="h-9">
+                    <SelectTrigger>
                       <SelectValue placeholder="Selecione a categoria" />
                     </SelectTrigger>
-                    <SelectContent className="max-h-48 z-50">
+                    <SelectContent>
                       {categories.map(category => (
                         <SelectItem key={category.id} value={category.id}>
                           <span className="flex items-center gap-2">
@@ -255,12 +255,12 @@ const EditWorkoutSession = ({ session, isOpen, onClose, onSuccess }: EditWorkout
                 
                 {selectedCategory && (
                   <div className="space-y-2">
-                    <Label className="text-sm font-medium">Exercício</Label>
+                    <Label>Exercício</Label>
                     <Select onValueChange={addExercise}>
-                      <SelectTrigger className="h-9">
+                      <SelectTrigger>
                         <SelectValue placeholder="Escolher exercício" />
                       </SelectTrigger>
-                      <SelectContent className="max-h-48 z-50">
+                      <SelectContent>
                         {categoryExercises.map(exercise => (
                           <SelectItem key={exercise.id} value={exercise.id}>
                             {exercise.name}
@@ -277,29 +277,28 @@ const EditWorkoutSession = ({ session, isOpen, onClose, onSuccess }: EditWorkout
           {/* Exercises List */}
           {sessionData.exercises.length > 0 && (
             <Card>
-              <CardHeader className="pb-3">
-                <CardTitle className="text-base sm:text-lg">Exercícios do Treino ({sessionData.exercises.length})</CardTitle>
+              <CardHeader>
+                <CardTitle className="text-lg">Exercícios do Treino ({sessionData.exercises.length})</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="space-y-3">
                   {sessionData.exercises.map((exercise, idx) => (
-                    <div key={idx} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-2 lg:gap-3 items-end p-3 bg-muted rounded-lg">
-                      <div className="col-span-1 sm:col-span-2 lg:col-span-1">
-                        <Label className="text-xs font-medium block mb-1">{exercise.exercise_name}</Label>
+                    <div key={idx} className="grid grid-cols-5 gap-3 items-end p-3 bg-muted rounded-lg">
+                      <div>
+                        <Label className="text-xs font-medium">{exercise.exercise_name}</Label>
                       </div>
                       <div>
-                        <Label className="text-xs block mb-1">Séries</Label>
+                        <Label className="text-xs">Séries</Label>
                         <Input
                           type="number"
                           value={exercise.sets}
                           onChange={(e) => updateExercise(idx, 'sets', parseInt(e.target.value) || 0)}
                           min="1"
                           max="10"
-                          className="h-9"
                         />
                       </div>
                       <div>
-                        <Label className="text-xs block mb-1">Repetições</Label>
+                        <Label className="text-xs">Repetições</Label>
                         <div className="flex gap-1">
                           <Input
                             type="number"
@@ -307,7 +306,6 @@ const EditWorkoutSession = ({ session, isOpen, onClose, onSuccess }: EditWorkout
                             onChange={(e) => updateExercise(idx, 'reps_min', parseInt(e.target.value) || 0)}
                             min="1"
                             placeholder="Min"
-                            className="h-9"
                           />
                           <Input
                             type="number"
@@ -315,58 +313,52 @@ const EditWorkoutSession = ({ session, isOpen, onClose, onSuccess }: EditWorkout
                             onChange={(e) => updateExercise(idx, 'reps_max', parseInt(e.target.value) || 0)}
                             min="1"
                             placeholder="Max"
-                            className="h-9"
                           />
                         </div>
                       </div>
                       <div>
-                        <Label className="text-xs block mb-1">Descanso (min)</Label>
+                        <Label className="text-xs">Descanso (min)</Label>
                         <Input
                           type="number"
                           step="0.5"
                           value={exercise.rest_minutes}
                           onChange={(e) => updateExercise(idx, 'rest_minutes', parseFloat(e.target.value) || 0)}
                           min="0"
-                          className="h-9"
                         />
                       </div>
-                      <div className="flex justify-end sm:justify-start">
-                        <Button
-                          type="button"
-                          variant="outline"
-                          size="sm"
-                          onClick={() => removeExercise(idx)}
-                          className="w-full sm:w-auto"
-                        >
-                          <X className="h-4 w-4" />
-                          <span className="ml-2 sm:hidden">Remover</span>
-                        </Button>
-                      </div>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => removeExercise(idx)}
+                      >
+                        <X className="h-4 w-4" />
+                      </Button>
                     </div>
                   ))}
                 </div>
               </CardContent>
             </Card>
           )}
-        </div>
 
-        {/* Action Buttons */}
-        <div className="flex-shrink-0 flex flex-col sm:flex-row gap-2 p-4 sm:p-6 pt-4 border-t bg-background">
-          <Button type="button" variant="outline" onClick={onClose} className="flex-1 h-10">
-            Cancelar
-          </Button>
-          <Button 
-            onClick={handleSave} 
-            className="flex-1 h-10" 
-            disabled={isLoading}
-          >
-            {isLoading ? "Salvando..." : (
-              <>
-                <Save className="h-3 w-3 sm:h-4 sm:w-4 mr-2" />
-                <span className="text-sm">Salvar Treino</span>
-              </>
-            )}
-          </Button>
+          {/* Action Buttons */}
+          <div className="flex gap-2 pt-4">
+            <Button type="button" variant="outline" onClick={onClose} className="flex-1">
+              Cancelar
+            </Button>
+            <Button 
+              onClick={handleSave} 
+              className="flex-1" 
+              disabled={isLoading}
+            >
+              {isLoading ? "Salvando..." : (
+                <>
+                  <Save className="h-4 w-4 mr-2" />
+                  Salvar Treino
+                </>
+              )}
+            </Button>
+          </div>
         </div>
       </DialogContent>
     </Dialog>
