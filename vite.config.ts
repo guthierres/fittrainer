@@ -11,17 +11,15 @@ export default defineConfig(({ mode }) => ({
     port: 8080,
   },
   build: {
-    assetsDir: "assets",
     outDir: "dist",
+    assetsDir: "assets",
     emptyOutDir: true,
     sourcemap: false,
     rollupOptions: {
       output: {
-        manualChunks: {
-          vendor: ['react', 'react-dom'],
-          supabase: ['@supabase/supabase-js'],
-          ui: ['@radix-ui/react-dialog', '@radix-ui/react-tabs', '@radix-ui/react-select']
-        },
+        entryFileNames: 'assets/[name]-[hash].js',
+        chunkFileNames: 'assets/[name]-[hash].js',
+        assetFileNames: 'assets/[name]-[hash].[ext]'
       },
     },
   },
