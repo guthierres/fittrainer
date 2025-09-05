@@ -481,29 +481,51 @@ const WorkoutPlanEditor = ({
 
         <CardContent className="overflow-y-auto max-h-[calc(90vh-120px)]">
           <Tabs value={activeTab} onValueChange={setActiveTab}>
-            <TabsList className="grid w-full grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-1 h-auto">
-              <TabsTrigger value="plan" className="text-xs md:text-sm">Plano</TabsTrigger>
-              {planData.sessions.map(session => (
-                <TabsTrigger 
-                  key={session.day_of_week} 
-                  value={`session-${session.day_of_week}`}
-                  className="text-xs md:text-sm flex flex-col items-center gap-1 p-2 h-auto"
+            <div className="w-full mb-6">
+              <div className="flex flex-wrap items-center gap-2 p-2 bg-muted/50 rounded-lg">
+                <Button
+                  variant={activeTab === "plan" ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => setActiveTab("plan")}
+                  className="flex items-center gap-2 min-w-fit"
                 >
-                  <span className="hidden md:inline">
-                    {DAYS_OF_WEEK.find(d => d.value === session.day_of_week)?.label}
-                  </span>
-                  <span className="md:hidden">
-                    {DAYS_OF_WEEK.find(d => d.value === session.day_of_week)?.label.slice(0, 3)}
-                  </span>
-                  <Badge variant="secondary" className="text-xs">{session.exercises.length}</Badge>
-                </TabsTrigger>
-              ))}
-              <TabsTrigger value="add-days" className="text-xs md:text-sm flex flex-col items-center gap-1 p-2 h-auto">
-                <Plus className="h-3 w-3 md:h-4 md:w-4" />
-                <span className="hidden md:inline">Adicionar</span>
-                <span className="md:hidden">+</span>
-              </TabsTrigger>
-            </TabsList>
+                  <Calendar className="h-4 w-4" />
+                  <span className="hidden sm:inline">Plano Geral</span>
+                  <span className="sm:hidden">Plano</span>
+                </Button>
+                
+                {planData.sessions.map(session => (
+                  <Button
+                    key={session.day_of_week}
+                    variant={activeTab === `session-${session.day_of_week}` ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => setActiveTab(`session-${session.day_of_week}`)}
+                    className="flex flex-col items-center gap-1 h-auto py-2 px-3 min-w-[80px] sm:min-w-[100px]"
+                  >
+                    <span className="text-xs font-medium">
+                      {DAYS_OF_WEEK.find(d => d.value === session.day_of_week)?.label.slice(0, 3)}
+                    </span>
+                    <span className="hidden sm:block text-xs text-muted-foreground">
+                      {DAYS_OF_WEEK.find(d => d.value === session.day_of_week)?.label}
+                    </span>
+                    <Badge variant="secondary" className="text-xs px-1.5 py-0.5">
+                      {session.exercises.length}
+                    </Badge>
+                  </Button>
+                ))}
+                
+                <Button
+                  variant={activeTab === "add-days" ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => setActiveTab("add-days")}
+                  className="flex flex-col items-center gap-1 h-auto py-2 px-3 min-w-[80px] sm:min-w-[100px] bg-primary/10 hover:bg-primary/20 border-2 border-dashed border-primary/30 hover:border-primary/50"
+                >
+                  <Plus className="h-4 w-4" />
+                  <span className="text-xs font-medium">Adicionar</span>
+                  <span className="hidden sm:block text-xs">Dia</span>
+                </Button>
+              </div>
+            </div>
 
             <TabsContent value="plan" className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
