@@ -320,6 +320,23 @@ Gerado em: ${new Date().toLocaleString('pt-BR')}
       </header>
 
       <div className="container mx-auto px-4 py-6">
+        {/* Navigation */}
+        <div className="flex gap-2 mb-6">
+          <Button 
+            variant="default" 
+            size="sm"
+            onClick={() => window.location.pathname = `/student/${token}`}
+          >
+            🏋️‍♂️ Treinos
+          </Button>
+          <Button 
+            variant="outline" 
+            size="sm"
+            onClick={() => window.location.pathname = `/student/${token}/diet`}
+          >
+            🍎 Dieta
+          </Button>
+        </div>
         {/* Workout Plan Info */}
         <Card className="mb-6">
           <CardHeader>
