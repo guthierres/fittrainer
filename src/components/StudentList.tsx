@@ -13,12 +13,14 @@ import {
   Dumbbell,
   Target,
   Utensils,
-  Trash2
+  Trash2,
+  Edit
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import QuickWorkoutCreator from "./QuickWorkoutCreator";
 import QuickDietCreator from "./QuickDietCreator";
+import StudentProfile from "./StudentProfile";
 
 interface Student {
   id: string;
@@ -51,7 +53,7 @@ interface StudentListProps {
   trainerId: string;
 }
 
-type DialogType = 'workout' | 'diet' | null;
+type DialogType = 'workout' | 'diet' | 'profile' | null;
 
 const StudentList = ({ trainerId }: StudentListProps) => {
   const [students, setStudents] = useState<Student[]>([]);
@@ -161,6 +163,11 @@ const StudentList = ({ trainerId }: StudentListProps) => {
     return age;
   };
 
+  const openProfileDialog = (student: Student) => {
+    setSelectedStudent(student);
+    setDialogType('profile');
+  };
+
   const openWorkoutDialog = (student: Student) => {
     setSelectedStudent(student);
     setDialogType('workout');
@@ -218,19 +225,30 @@ const StudentList = ({ trainerId }: StudentListProps) => {
         <Card key={student.id} className="hover:shadow-lg transition-shadow">
           <CardHeader className="pb-3">
             <div className="flex items-start justify-between">
-              <div className="flex items-center gap-3">
+              <div 
+                className="flex items-center gap-3 cursor-pointer flex-1" 
+                onClick={() => openProfileDialog(student)}
+              >
                 <Avatar className="h-12 w-12">
                   <AvatarFallback className="bg-primary text-primary-foreground">
                     {getStudentInitials(student.name)}
                   </AvatarFallback>
                 </Avatar>
                 <div>
-                  <CardTitle className="text-lg">{student.name}</CardTitle>
+                  <CardTitle className="text-lg hover:text-primary transition-colors">{student.name}</CardTitle>
                   <p className="text-sm text-muted-foreground">
                     Desde {new Date(student.created_at).toLocaleDateString('pt-BR')}
                   </p>
                 </div>
               </div>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => openProfileDialog(student)}
+              >
+                <Edit className="h-4 w-4 mr-2" />
+                Ver Prontuário
+              </Button>
             </div>
           </CardHeader>
           
@@ -372,6 +390,18 @@ const StudentList = ({ trainerId }: StudentListProps) => {
       ))}
       
       {/* Dialogs */}
+      <Dialog open={dialogType === 'profile'} onOpenChange={() => setDialogType(null)}>
+        <DialogContent className="max-w-7xl max-h-[95vh] overflow-y-auto p-0">
+          {selectedStudent && (
+            <StudentProfile
+              student={selectedStudent}
+              trainerId={trainerId}
+              onClose={closeDialog}
+            />
+          )}
+        </DialogContent>
+      </Dialog>
+
       <Dialog open={dialogType === 'workout'} onOpenChange={() => setDialogType(null)}>
         <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
           {selectedStudent && (

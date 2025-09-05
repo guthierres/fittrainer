@@ -107,13 +107,13 @@ const StudentDiet = () => {
           daily_protein,
           daily_carbs,
           daily_fat,
-          personal_trainer:personal_trainers!inner(name, cref),
-          meals!inner(
+          personal_trainer:personal_trainers(name, cref),
+          meals(
             id,
             name,
             time_of_day,
             order_index,
-            meal_foods!inner(
+            meal_foods(
               id,
               food_name,
               quantity,

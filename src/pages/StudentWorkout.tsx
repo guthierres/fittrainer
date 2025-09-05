@@ -109,13 +109,13 @@ const StudentWorkout = () => {
           id,
           name,
           description,
-          personal_trainer:personal_trainers!inner(name, cref),
-          workout_sessions!inner(
+          personal_trainer:personal_trainers(name, cref),
+          workout_sessions(
             id,
             name,
             description,
             day_of_week,
-            workout_exercises!inner(
+            workout_exercises(
               id,
               sets,
               reps_min,
@@ -124,11 +124,11 @@ const StudentWorkout = () => {
               rest_seconds,
               notes,
               order_index,
-              exercise:exercises!inner(
+              exercise:exercises(
                 name,
                 muscle_groups,
                 equipment,
-                category:exercise_categories!inner(name, emoji)
+                category:exercise_categories(name, emoji)
               )
             )
           )
