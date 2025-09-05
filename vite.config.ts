@@ -19,7 +19,14 @@ export default defineConfig(({ mode }) => ({
       output: {
         entryFileNames: 'assets/[name]-[hash].js',
         chunkFileNames: 'assets/[name]-[hash].js',
-        assetFileNames: 'assets/[name]-[hash].[ext]'
+        assetFileNames: 'assets/[name]-[hash].[ext]',
+        manualChunks: {
+          vendor: ['react', 'react-dom'],
+          router: ['react-router-dom'],
+          ui: ['@radix-ui/react-dialog', '@radix-ui/react-tabs', '@radix-ui/react-select'],
+          supabase: ['@supabase/supabase-js'],
+          utils: ['@tanstack/react-query', 'date-fns', 'clsx']
+        }
       },
     },
   },
