@@ -218,42 +218,15 @@ const Dashboard = () => {
           </TabsContent>
 
           <TabsContent value="workouts" className="space-y-4">
-            <Card>
-              <CardHeader>
-                <CardTitle>Treinos</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-muted-foreground">
-                  Funcionalidade de gerenciamento de treinos em desenvolvimento.
-                </p>
-              </CardContent>
-            </Card>
+            <WorkoutManager trainerId={trainer.id} />
           </TabsContent>
 
           <TabsContent value="diets" className="space-y-4">
-            <Card>
-              <CardHeader>
-                <CardTitle>Dietas</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-muted-foreground">
-                  Funcionalidade de gerenciamento de dietas em desenvolvimento.
-                </p>
-              </CardContent>
-            </Card>
+            <DietManager trainerId={trainer.id} />
           </TabsContent>
 
           <TabsContent value="reports" className="space-y-4">
-            <Card>
-              <CardHeader>
-                <CardTitle>Relatórios</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-muted-foreground">
-                  Funcionalidade de relatórios em desenvolvimento.
-                </p>
-              </CardContent>
-            </Card>
+            <ReportsManager trainerId={trainer.id} />
           </TabsContent>
         </Tabs>
       </div>
