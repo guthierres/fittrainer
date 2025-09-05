@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { 
   User, 
   Calendar,
@@ -10,10 +11,13 @@ import {
   Mail,
   ExternalLink,
   Dumbbell,
-  Target
+  Target,
+  Utensils
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import QuickWorkoutCreator from "./QuickWorkoutCreator";
+import QuickDietCreator from "./QuickDietCreator";
 
 interface Student {
   id: string;
@@ -32,9 +36,13 @@ interface StudentListProps {
   trainerId: string;
 }
 
+type DialogType = 'workout' | 'diet' | null;
+
 const StudentList = ({ trainerId }: StudentListProps) => {
   const [students, setStudents] = useState<Student[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [dialogType, setDialogType] = useState<DialogType>(null);
+  const [selectedStudent, setSelectedStudent] = useState<Student | null>(null);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -97,6 +105,26 @@ const StudentList = ({ trainerId }: StudentListProps) => {
     }
     
     return age;
+  };
+
+  const openWorkoutDialog = (student: Student) => {
+    setSelectedStudent(student);
+    setDialogType('workout');
+  };
+
+  const openDietDialog = (student: Student) => {
+    setSelectedStudent(student);
+    setDialogType('diet');
+  };
+
+  const closeDialog = () => {
+    setDialogType(null);
+    setSelectedStudent(null);
+  };
+
+  const handleSuccess = () => {
+    closeDialog();
+    loadStudents(); // Refresh the student list if needed
   };
 
   if (isLoading) {
@@ -222,12 +250,20 @@ const StudentList = ({ trainerId }: StudentListProps) => {
               </Button>
               
               <div className="grid grid-cols-2 gap-2">
-                <Button variant="secondary" size="sm">
+                <Button 
+                  variant="secondary" 
+                  size="sm"
+                  onClick={() => openWorkoutDialog(student)}
+                >
                   <Dumbbell className="h-4 w-4 mr-2" />
                   Treinos
                 </Button>
-                <Button variant="secondary" size="sm">
-                  <Target className="h-4 w-4 mr-2" />
+                <Button 
+                  variant="secondary" 
+                  size="sm"
+                  onClick={() => openDietDialog(student)}
+                >
+                  <Utensils className="h-4 w-4 mr-2" />
                   Dietas
                 </Button>
               </div>
@@ -235,6 +271,35 @@ const StudentList = ({ trainerId }: StudentListProps) => {
           </CardContent>
         </Card>
       ))}
+      
+      {/* Dialogs */}
+      <Dialog open={dialogType === 'workout'} onOpenChange={() => setDialogType(null)}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          {selectedStudent && (
+            <QuickWorkoutCreator
+              studentId={selectedStudent.id}
+              studentName={selectedStudent.name}
+              trainerId={trainerId}
+              onClose={closeDialog}
+              onSuccess={handleSuccess}
+            />
+          )}
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={dialogType === 'diet'} onOpenChange={() => setDialogType(null)}>
+        <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
+          {selectedStudent && (
+            <QuickDietCreator
+              studentId={selectedStudent.id}
+              studentName={selectedStudent.name}
+              trainerId={trainerId}
+              onClose={closeDialog}
+              onSuccess={handleSuccess}
+            />
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
