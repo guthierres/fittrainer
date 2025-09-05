@@ -658,30 +658,32 @@ const WorkoutPlanEditor = ({
                         </div>
                       )}
 
-                      <div className="flex gap-2 mt-4">
-                        <Button
-                          variant="outline"
-                          onClick={() => setSelectedDaysToAdd(getAvailableDays().map(d => d.value))}
-                          disabled={getAvailableDays().length === 0}
-                        >
-                          Selecionar Todos
-                        </Button>
-                        <Button
-                          variant="outline"
-                          onClick={() => setSelectedDaysToAdd([])}
-                          disabled={selectedDaysToAdd.length === 0}
-                        >
-                          Limpar Seleção
-                        </Button>
-                        <Button
-                          onClick={addMultipleDays}
-                          disabled={selectedDaysToAdd.length === 0}
-                          className="ml-auto"
-                        >
-                          <Plus className="h-4 w-4 mr-2" />
-                          Adicionar {selectedDaysToAdd.length} Dia(s)
-                        </Button>
-                      </div>
+                        <div className="flex flex-col sm:flex-row gap-2 mt-4">
+                          <Button
+                            variant="outline"
+                            onClick={() => setSelectedDaysToAdd(getAvailableDays().map(d => d.value))}
+                            disabled={getAvailableDays().length === 0}
+                            className="w-full sm:w-auto"
+                          >
+                            Selecionar Todos
+                          </Button>
+                          <Button
+                            variant="outline"
+                            onClick={() => setSelectedDaysToAdd([])}
+                            disabled={selectedDaysToAdd.length === 0}
+                            className="w-full sm:w-auto"
+                          >
+                            Limpar Seleção
+                          </Button>
+                          <Button
+                            onClick={addMultipleDays}
+                            disabled={selectedDaysToAdd.length === 0}
+                            className="w-full sm:flex-1 sm:ml-auto"
+                          >
+                            <Plus className="h-4 w-4 mr-2" />
+                            Adicionar {selectedDaysToAdd.length} Dia(s)
+                          </Button>
+                        </div>
                     </CardContent>
                   </Card>
                 </div>
@@ -710,7 +712,7 @@ const WorkoutPlanEditor = ({
                     <CardTitle className="text-lg">Adicionar Exercício</CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-4">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 lg:gap-4">
                       <div className="space-y-2">
                         <Label>Categoria</Label>
                         <Select value={selectedCategory} onValueChange={setSelectedCategory}>
@@ -759,8 +761,8 @@ const WorkoutPlanEditor = ({
                     <CardContent>
                       <div className="space-y-3">
                         {session.exercises.map((exercise, idx) => (
-                          <div key={idx} className="grid grid-cols-5 gap-3 items-end p-3 bg-muted rounded-lg">
-                            <div>
+                          <div key={idx} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-2 lg:gap-3 items-end p-3 bg-muted rounded-lg">
+                            <div className="col-span-1 sm:col-span-2 lg:col-span-1">
                               <Label className="text-xs font-medium">{exercise.exercise_name}</Label>
                             </div>
                             <div>
@@ -771,6 +773,7 @@ const WorkoutPlanEditor = ({
                                 onChange={(e) => updateExercise(session.day_of_week, idx, 'sets', parseInt(e.target.value) || 0)}
                                 min="1"
                                 max="10"
+                                className="h-9"
                               />
                             </div>
                             <div>
@@ -782,6 +785,7 @@ const WorkoutPlanEditor = ({
                                   onChange={(e) => updateExercise(session.day_of_week, idx, 'reps_min', parseInt(e.target.value) || 0)}
                                   min="1"
                                   placeholder="Min"
+                                  className="h-9"
                                 />
                                 <Input
                                   type="number"
@@ -789,6 +793,7 @@ const WorkoutPlanEditor = ({
                                   onChange={(e) => updateExercise(session.day_of_week, idx, 'reps_max', parseInt(e.target.value) || 0)}
                                   min="1"
                                   placeholder="Max"
+                                  className="h-9"
                                 />
                               </div>
                             </div>
@@ -800,16 +805,21 @@ const WorkoutPlanEditor = ({
                                 value={exercise.rest_minutes}
                                 onChange={(e) => updateExercise(session.day_of_week, idx, 'rest_minutes', parseFloat(e.target.value) || 0)}
                                 min="0"
+                                className="h-9"
                               />
                             </div>
-                            <Button
-                              type="button"
-                              variant="outline"
-                              size="sm"
-                              onClick={() => removeExercise(session.day_of_week, idx)}
-                            >
-                              <X className="h-4 w-4" />
-                            </Button>
+                            <div className="flex justify-end sm:justify-start">
+                              <Button
+                                type="button"
+                                variant="outline"
+                                size="sm"
+                                onClick={() => removeExercise(session.day_of_week, idx)}
+                                className="w-full sm:w-auto"
+                              >
+                                <X className="h-4 w-4" />
+                                <span className="ml-2 sm:hidden">Remover</span>
+                              </Button>
+                            </div>
                           </div>
                         ))}
                       </div>
@@ -821,7 +831,7 @@ const WorkoutPlanEditor = ({
           </Tabs>
 
           {/* Action Buttons */}
-          <div className="flex gap-2 pt-6 border-t">
+          <div className="flex flex-col sm:flex-row gap-2 pt-6 border-t">
             <Button type="button" variant="outline" onClick={onClose} className="flex-1">
               Cancelar
             </Button>

@@ -111,6 +111,34 @@ All colors MUST be HSL.
     @apply border-border;
   }
 
+  /* Hide scrollbars on all elements for cleaner mobile experience */
+  * {
+    scrollbar-width: none; /* Firefox */
+    -ms-overflow-style: none; /* Internet Explorer 10+ */
+  }
+
+  *::-webkit-scrollbar {
+    display: none; /* Safari and Chrome */
+  }
+
+  /* Mobile-first touch improvements */
+  @media (max-width: 768px) {
+    /* Improve touch targets */
+    button, [role="button"], input, select, textarea {
+      min-height: 44px;
+    }
+    
+    /* Better tap highlight */
+    * {
+      -webkit-tap-highlight-color: hsl(var(--primary) / 0.1);
+    }
+    
+    /* Improve scrolling on mobile */
+    body {
+      -webkit-overflow-scrolling: touch;
+    }
+  }
+
   body {
     @apply bg-background text-foreground;
   }

@@ -127,17 +127,17 @@ const Dashboard = () => {
     <div className="min-h-screen bg-background">
       {/* Header */}
       <header className="border-b bg-card">
-        <div className="container mx-auto px-4 py-4 flex items-center justify-between">
+        <div className="container mx-auto px-4 py-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
           <div className="flex items-center gap-3">
-            <Dumbbell className="h-8 w-8 text-primary" />
+            <Dumbbell className="h-6 w-6 sm:h-8 sm:w-8 text-primary" />
             <div>
-              <h1 className="text-2xl font-bold text-primary">FitTrainer-Pro</h1>
-              <p className="text-sm text-muted-foreground">
+              <h1 className="text-xl sm:text-2xl font-bold text-primary">FitTrainer-Pro</h1>
+              <p className="text-xs sm:text-sm text-muted-foreground">
                 Olá, {trainer.name}
               </p>
             </div>
           </div>
-          <Button variant="outline" onClick={handleLogout} size="sm">
+          <Button variant="outline" onClick={handleLogout} size="sm" className="w-full sm:w-auto">
             <LogOut className="h-4 w-4 mr-2" />
             Sair
           </Button>
@@ -146,7 +146,7 @@ const Dashboard = () => {
 
       <div className="container mx-auto px-4 py-6">
         {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+        <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-4 gap-3 lg:gap-4 mb-6">
           <Card>
             <CardContent className="flex items-center p-4">
               <Users className="h-8 w-8 text-primary mr-3" />
@@ -190,22 +190,28 @@ const Dashboard = () => {
 
         {/* Main Content */}
         <Tabs defaultValue="students" className="space-y-4">
-          <TabsList className="grid grid-cols-5 w-full max-w-3xl">
-            <TabsTrigger value="students">Alunos</TabsTrigger>
-            <TabsTrigger value="exercises">Exercícios</TabsTrigger>
-            <TabsTrigger value="workouts">Treinos</TabsTrigger>
-            <TabsTrigger value="diets">Dietas</TabsTrigger>
-            <TabsTrigger value="reports">Relatórios</TabsTrigger>
+          <TabsList className="grid grid-cols-3 lg:grid-cols-5 w-full max-w-full lg:max-w-3xl">
+            <TabsTrigger value="students" className="text-xs lg:text-sm">Alunos</TabsTrigger>
+            <TabsTrigger value="exercises" className="text-xs lg:text-sm">
+              <span className="hidden sm:inline">Exercícios</span>
+              <span className="sm:hidden">Exerc.</span>
+            </TabsTrigger>
+            <TabsTrigger value="workouts" className="text-xs lg:text-sm">Treinos</TabsTrigger>
+            <TabsTrigger value="diets" className="text-xs lg:text-sm">Dietas</TabsTrigger>
+            <TabsTrigger value="reports" className="text-xs lg:text-sm">
+              <span className="hidden sm:inline">Relatórios</span>
+              <span className="sm:hidden">Relat.</span>
+            </TabsTrigger>
           </TabsList>
 
           <TabsContent value="students" className="space-y-4">
-            <div className="flex justify-between items-center">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
               <h2 className="text-xl font-semibold">Gerenciar Alunos</h2>
-              <div className="flex gap-2">
-                <Button onClick={() => setShowTestCreator(true)} variant="outline">
+              <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+                <Button onClick={() => setShowTestCreator(true)} variant="outline" className="w-full sm:w-auto">
                   Teste Debug
                 </Button>
-                <Button onClick={() => setShowCreateStudent(true)}>
+                <Button onClick={() => setShowCreateStudent(true)} className="w-full sm:w-auto">
                   <Plus className="h-4 w-4 mr-2" />
                   Novo Aluno
                 </Button>

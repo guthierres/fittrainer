@@ -298,34 +298,32 @@ Gerado em: ${new Date().toLocaleString('pt-BR')}
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
-      <header className="border-b bg-card">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
+      <header className="border-b bg-card sticky top-0 z-10">
+        <div className="container mx-auto px-4 py-3 sm:py-4">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex items-center gap-3">
-              <Dumbbell className="h-8 w-8 text-primary" />
+              <Dumbbell className="h-6 w-6 sm:h-8 sm:w-8 text-primary" />
               <div>
-                <h1 className="text-2xl font-bold text-primary">FitTrainer-Pro</h1>
+                <h1 className="text-xl sm:text-2xl font-bold text-primary">FitTrainer-Pro</h1>
                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
                   <User className="h-4 w-4" />
                   {student.name}
                 </div>
               </div>
             </div>
-            <Button onClick={exportWorkout} variant="outline" size="sm">
-              <Download className="h-4 w-4 mr-2" />
-              Exportar
-            </Button>
-            <div className="flex gap-2">
+            <div className="flex flex-col sm:flex-row gap-2">
               <Button 
                 onClick={() => window.location.href = `/student/${token}/diet`}
                 variant="secondary" 
                 size="sm"
+                className="w-full sm:w-auto"
               >
                 Ver Dieta
               </Button>
-              <Button onClick={exportWorkout} variant="outline" size="sm">
+              <Button onClick={exportWorkout} variant="outline" size="sm" className="w-full sm:w-auto">
                 <Download className="h-4 w-4 mr-2" />
-                Exportar Treino
+                <span className="hidden sm:inline">Exportar Treino</span>
+                <span className="sm:hidden">Exportar</span>
               </Button>
             </div>
           </div>
@@ -334,11 +332,12 @@ Gerado em: ${new Date().toLocaleString('pt-BR')}
 
       <div className="container mx-auto px-4 py-6">
         {/* Navigation */}
-        <div className="flex gap-2 mb-6">
+        <div className="flex flex-col sm:flex-row gap-2 mb-6">
           <Button 
             variant="default" 
             size="sm"
             onClick={() => window.location.pathname = `/student/${token}`}
+            className="w-full sm:w-auto"
           >
             🏋️‍♂️ Treinos
           </Button>
@@ -346,6 +345,7 @@ Gerado em: ${new Date().toLocaleString('pt-BR')}
             variant="outline" 
             size="sm"
             onClick={() => window.location.pathname = `/student/${token}/diet`}
+            className="w-full sm:w-auto"
           >
             🍎 Dieta
           </Button>
@@ -377,7 +377,7 @@ Gerado em: ${new Date().toLocaleString('pt-BR')}
             <CardTitle>Selecionar Dia da Semana</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="flex flex-wrap gap-2">
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-7 gap-2">
               {daysOfWeek.map((day, index) => {
                 const hasWorkout = workoutPlan.workout_sessions.some(
                   s => s.day_of_week === index

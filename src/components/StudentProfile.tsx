@@ -285,15 +285,22 @@ const StudentProfile = ({ student, trainerId, onClose }: StudentProfileProps) =>
         
         <CardContent>
           <Tabs value={activeTab} onValueChange={setActiveTab}>
-            <TabsList className="grid w-full grid-cols-4">
-              <TabsTrigger value="overview">Visão Geral</TabsTrigger>
-              <TabsTrigger value="workouts">
-                Treinos ({workoutPlans.length})
+            <TabsList className="grid w-full grid-cols-2 lg:grid-cols-4 h-auto">
+              <TabsTrigger value="overview" className="text-xs lg:text-sm py-2">
+                Visão Geral
               </TabsTrigger>
-              <TabsTrigger value="diets">
-                Dietas ({dietPlans.length})
+              <TabsTrigger value="workouts" className="text-xs lg:text-sm py-2">
+                <span className="hidden sm:inline">Treinos ({workoutPlans.length})</span>
+                <span className="sm:hidden">Treinos</span>
               </TabsTrigger>
-              <TabsTrigger value="link">Link do Aluno</TabsTrigger>
+              <TabsTrigger value="diets" className="text-xs lg:text-sm py-2">
+                <span className="hidden sm:inline">Dietas ({dietPlans.length})</span>
+                <span className="sm:hidden">Dietas</span>
+              </TabsTrigger>
+              <TabsTrigger value="link" className="text-xs lg:text-sm py-2">
+                <span className="hidden sm:inline">Link do Aluno</span>
+                <span className="sm:hidden">Link</span>
+              </TabsTrigger>
             </TabsList>
 
             <TabsContent value="overview" className="space-y-6">
@@ -305,7 +312,7 @@ const StudentProfile = ({ student, trainerId, onClose }: StudentProfileProps) =>
                     Informações Pessoais
                   </CardTitle>
                 </CardHeader>
-                <CardContent className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <CardContent className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 lg:gap-4">
                   {student.email && (
                     <div className="flex items-center gap-2">
                       <Mail className="h-4 w-4 text-muted-foreground" />
@@ -377,7 +384,7 @@ const StudentProfile = ({ student, trainerId, onClose }: StudentProfileProps) =>
               )}
 
               {/* Quick Stats */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 lg:gap-4">
                 <Card>
                   <CardContent className="text-center p-4">
                     <Dumbbell className="h-8 w-8 text-primary mx-auto mb-2" />
@@ -407,9 +414,9 @@ const StudentProfile = ({ student, trainerId, onClose }: StudentProfileProps) =>
             </TabsContent>
 
             <TabsContent value="workouts" className="space-y-4">
-              <div className="flex justify-between items-center">
+              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
                 <h3 className="text-lg font-semibold">Planos de Treino</h3>
-                <Button onClick={() => setShowWorkoutCreator(true)}>
+                <Button onClick={() => setShowWorkoutCreator(true)} className="w-full sm:w-auto">
                   <Plus className="h-4 w-4 mr-2" />
                   Novo Treino
                 </Button>
@@ -430,28 +437,31 @@ const StudentProfile = ({ student, trainerId, onClose }: StudentProfileProps) =>
                   {workoutPlans.map((workout) => (
                     <Card key={workout.id} className={workout.active ? "border-primary/50" : "border-muted"}>
                       <CardHeader>
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-2">
-                            <CardTitle className="text-lg">{workout.name}</CardTitle>
-                            <Badge variant={workout.active ? "default" : "secondary"}>
+                        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3">
+                          <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+                            <CardTitle className="text-base lg:text-lg">{workout.name}</CardTitle>
+                            <Badge variant={workout.active ? "default" : "secondary"} className="w-fit">
                               {workout.active ? "Ativo" : "Inativo"}
                             </Badge>
                           </div>
-                          <div className="flex gap-2">
+                          <div className="flex flex-col sm:flex-row gap-2">
                             <Button
                               variant="outline"
                               size="sm"
+                              className="w-full sm:w-auto"
                               onClick={() => {
                                 setSelectedWorkoutPlan(workout);
                                 setShowWorkoutEditor(true);
                               }}
                             >
                               <Edit className="h-4 w-4 mr-2" />
-                              Editar
+                              <span className="hidden sm:inline">Editar</span>
+                              <span className="sm:hidden">Editar Treino</span>
                             </Button>
                             <Button
                               variant="outline"
                               size="sm"
+                              className="w-full sm:w-auto"
                               onClick={() => toggleWorkoutStatus(workout.id, workout.active)}
                             >
                               {workout.active ? "Desativar" : "Ativar"}
@@ -480,9 +490,9 @@ const StudentProfile = ({ student, trainerId, onClose }: StudentProfileProps) =>
             </TabsContent>
 
             <TabsContent value="diets" className="space-y-4">
-              <div className="flex justify-between items-center">
+              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
                 <h3 className="text-lg font-semibold">Planos Alimentares</h3>
-                <Button onClick={() => setShowDietCreator(true)}>
+                <Button onClick={() => setShowDietCreator(true)} className="w-full sm:w-auto">
                   <Plus className="h-4 w-4 mr-2" />
                   Nova Dieta
                 </Button>
@@ -520,7 +530,7 @@ const StudentProfile = ({ student, trainerId, onClose }: StudentProfileProps) =>
                         </div>
                       </CardHeader>
                       <CardContent>
-                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 lg:gap-4">
                           {diet.daily_calories && (
                             <div className="text-center">
                               <p className="text-lg font-bold text-primary">{diet.daily_calories}</p>
@@ -569,13 +579,13 @@ const StudentProfile = ({ student, trainerId, onClose }: StudentProfileProps) =>
                     Compartilhe este link com o aluno para que ele possa acessar seus treinos e dietas:
                   </p>
                   
-                  <div className="flex gap-2">
+                  <div className="flex flex-col sm:flex-row gap-2">
                     <div className="flex-1 p-3 bg-muted rounded-lg">
-                      <code className="text-sm break-all">
+                      <code className="text-xs sm:text-sm break-all">
                         {`${window.location.origin}/student/${student.unique_link_token}`}
                       </code>
                     </div>
-                    <Button onClick={copyStudentLink}>
+                    <Button onClick={copyStudentLink} className="w-full sm:w-auto">
                       <ExternalLink className="h-4 w-4 mr-2" />
                       Copiar
                     </Button>
@@ -599,9 +609,9 @@ const StudentProfile = ({ student, trainerId, onClose }: StudentProfileProps) =>
 
       {/* Dialogs */}
       <Dialog open={showWorkoutCreator} onOpenChange={setShowWorkoutCreator}>
-        <DialogContent className="max-w-5xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="w-[95vw] max-w-5xl h-[90vh] max-h-[90vh] overflow-y-auto p-4 sm:p-6">
           <DialogHeader>
-            <DialogTitle>Criar Novo Treino</DialogTitle>
+            <DialogTitle className="text-lg sm:text-xl">Criar Novo Treino</DialogTitle>
           </DialogHeader>
           <QuickWorkoutCreator
             studentId={student.id}
@@ -614,9 +624,9 @@ const StudentProfile = ({ student, trainerId, onClose }: StudentProfileProps) =>
       </Dialog>
 
       <Dialog open={showDietCreator} onOpenChange={setShowDietCreator}>
-        <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="w-[95vw] max-w-6xl h-[90vh] max-h-[90vh] overflow-y-auto p-4 sm:p-6">
           <DialogHeader>
-            <DialogTitle>Criar Nova Dieta</DialogTitle>
+            <DialogTitle className="text-lg sm:text-xl">Criar Nova Dieta</DialogTitle>
           </DialogHeader>
           <QuickDietCreator
             studentId={student.id}

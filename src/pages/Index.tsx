@@ -66,57 +66,57 @@ const Index = () => {
       <section className="container mx-auto px-4 py-16">
         <div className="text-center space-y-6">
           <div className="flex justify-center mb-6">
-            <div className="flex items-center gap-3">
-              <Dumbbell className="h-16 w-16 text-primary" />
+            <div className="flex items-center gap-2 sm:gap-3">
+              <Dumbbell className="h-12 w-12 sm:h-16 sm:w-16 text-primary" />
               <div>
-                <h1 className="text-5xl font-bold text-primary">FitTrainer-Pro</h1>
-                <p className="text-xl text-muted-foreground">Sistema Completo de Gestão</p>
+                <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-primary">FitTrainer-Pro</h1>
+                <p className="text-lg sm:text-xl text-muted-foreground">Sistema Completo de Gestão</p>
               </div>
             </div>
           </div>
           
-          <h2 className="text-3xl md:text-4xl font-bold text-foreground max-w-4xl mx-auto">
+          <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-foreground max-w-4xl mx-auto">
             A plataforma definitiva para 
             <span className="text-primary"> Personal Trainers</span> gerenciarem seus alunos
           </h2>
           
-          <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
+          <p className="text-base sm:text-lg lg:text-xl text-muted-foreground max-w-2xl mx-auto">
             Gerencie alunos, crie treinos personalizados, acompanhe progressos e gere relatórios profissionais. 
             Tudo em uma única plataforma moderna e segura.
           </p>
 
-          <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mt-8">
+          <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center items-center mt-8">
             <Button 
               size="lg" 
               onClick={() => navigate("/login")}
-              className="w-full sm:w-auto text-lg px-8 py-6"
+              className="w-full sm:w-auto text-base sm:text-lg px-6 sm:px-8 py-4 sm:py-6"
             >
               Acessar como Personal Trainer
-              <ArrowRight className="ml-2 h-5 w-5" />
+              <ArrowRight className="ml-2 h-4 w-4 sm:h-5 sm:w-5" />
             </Button>
             
             <Button 
               variant="outline" 
               size="lg" 
               onClick={() => navigate("/super-admin")}
-              className="w-full sm:w-auto text-lg px-8 py-6"
+              className="w-full sm:w-auto text-base sm:text-lg px-6 sm:px-8 py-4 sm:py-6"
             >
-              <Shield className="mr-2 h-5 w-5" />
+              <Shield className="mr-2 h-4 w-4 sm:h-5 sm:w-5" />
               Acesso Administrativo
             </Button>
           </div>
 
-          <div className="flex justify-center gap-8 mt-12">
-            <Badge variant="secondary" className="text-lg px-4 py-2">
-              <Star className="mr-2 h-4 w-4" />
+          <div className="flex flex-wrap justify-center gap-3 sm:gap-8 mt-8 sm:mt-12">
+            <Badge variant="secondary" className="text-sm sm:text-lg px-3 sm:px-4 py-2">
+              <Star className="mr-2 h-3 w-3 sm:h-4 sm:w-4" />
               100% Gratuito
             </Badge>
-            <Badge variant="secondary" className="text-lg px-4 py-2">
-              <Smartphone className="mr-2 h-4 w-4" />
+            <Badge variant="secondary" className="text-sm sm:text-lg px-3 sm:px-4 py-2">
+              <Smartphone className="mr-2 h-3 w-3 sm:h-4 sm:w-4" />
               PWA Mobile
             </Badge>
-            <Badge variant="secondary" className="text-lg px-4 py-2">
-              <Shield className="mr-2 h-4 w-4" />
+            <Badge variant="secondary" className="text-sm sm:text-lg px-3 sm:px-4 py-2">
+              <Shield className="mr-2 h-3 w-3 sm:h-4 sm:w-4" />
               Dados Seguros
             </Badge>
           </div>
@@ -132,7 +132,7 @@ const Index = () => {
           </p>
         </div>
 
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mb-16">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-6 mb-12 lg:mb-16">
           {features.map((feature, index) => (
             <Card key={index} className="hover:shadow-lg transition-shadow">
               <CardHeader>
@@ -149,7 +149,7 @@ const Index = () => {
         </div>
 
         {/* Benefits List */}
-        <div className="grid md:grid-cols-2 gap-12 items-center">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 items-center">
           <div>
             <h4 className="text-2xl font-bold mb-6">Por que escolher o FitTrainer-Pro?</h4>
             <div className="space-y-3">
