@@ -120,11 +120,18 @@ const EditTrainerProfile = ({ trainer, onClose, onSuccess }: EditTrainerProfileP
   };
 
   return (
-    <Card className="w-full max-w-2xl mx-auto">
-      <CardHeader>
+    <Card className="w-full max-w-2xl mx-auto border-0 shadow-xl bg-card/95 backdrop-blur">
+      <CardHeader className="pb-6">
         <div className="flex items-center justify-between">
-          <CardTitle>Editar Meu Perfil</CardTitle>
-          <Button variant="outline" size="sm" onClick={onClose}>
+          <div>
+            <CardTitle className="text-2xl font-bold bg-gradient-to-r from-primary to-primary/80 bg-clip-text text-transparent">
+              Editar Meu Perfil
+            </CardTitle>
+            <p className="text-sm text-muted-foreground mt-1">
+              Atualize suas informações pessoais
+            </p>
+          </div>
+          <Button variant="ghost" size="sm" onClick={onClose} className="hover-scale">
             <X className="h-4 w-4" />
           </Button>
         </div>
@@ -256,11 +263,20 @@ const EditTrainerProfile = ({ trainer, onClose, onSuccess }: EditTrainerProfileP
           </div>
 
           {/* Botões */}
-          <div className="flex flex-col sm:flex-row gap-3 pt-6">
-            <Button type="button" variant="outline" onClick={onClose} className="flex-1">
+          <div className="flex flex-col sm:flex-row gap-3 pt-8 border-t">
+            <Button 
+              type="button" 
+              variant="outline" 
+              onClick={onClose} 
+              className="flex-1 hover-scale"
+            >
               Cancelar
             </Button>
-            <Button type="submit" disabled={isLoading} className="flex-1">
+            <Button 
+              type="submit" 
+              disabled={isLoading} 
+              className="flex-1 hover-scale bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary"
+            >
               {isLoading ? "Atualizando..." : "Atualizar Perfil"}
             </Button>
           </div>

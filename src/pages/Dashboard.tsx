@@ -131,150 +131,213 @@ const Dashboard = () => {
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
-      <header className="border-b bg-card">
-        <div className="container mx-auto px-4 py-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-          <div className="flex items-center gap-3">
-            <Dumbbell className="h-6 w-6 sm:h-8 sm:w-8 text-primary" />
-            <div>
-              <h1 className="text-xl sm:text-2xl font-bold text-primary">FitTrainer-Pro</h1>
-              <p className="text-xs sm:text-sm text-muted-foreground">
-                Olá, {trainer.name}
-              </p>
+      <header className="sticky top-0 z-40 border-b bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/60">
+        <div className="max-w-screen-2xl mx-auto px-4 lg:px-8 py-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <div className="bg-gradient-to-br from-primary to-primary/80 p-2 rounded-xl">
+                <Dumbbell className="h-6 w-6 text-primary-foreground" />
+              </div>
+              <div>
+                <h1 className="text-xl lg:text-2xl font-bold bg-gradient-to-r from-primary to-primary/80 bg-clip-text text-transparent">
+                  FitTrainer-Pro
+                </h1>
+                <p className="text-sm text-muted-foreground">
+                  Bem-vindo, {trainer.name}
+                </p>
+              </div>
             </div>
-          </div>
-          <div className="flex flex-col sm:flex-row gap-2">
-            <Button variant="outline" onClick={() => setShowEditProfile(true)} size="sm" className="w-full sm:w-auto">
-              <Settings className="h-4 w-4 mr-2" />
-              <span className="hidden sm:inline">Meu Perfil</span>
-              <span className="sm:hidden">Perfil</span>
-            </Button>
-            <Button variant="outline" onClick={handleLogout} size="sm" className="w-full sm:w-auto">
-              <LogOut className="h-4 w-4 mr-2" />
-              Sair
-            </Button>
+            
+            <div className="flex items-center gap-3">
+              <Button 
+                variant="ghost" 
+                size="sm"
+                onClick={() => setShowEditProfile(true)} 
+                className="hover-scale"
+              >
+                <Settings className="h-4 w-4 mr-2" />
+                <span className="hidden sm:inline">Meu Perfil</span>
+              </Button>
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={handleLogout}
+                className="hover-scale"
+              >
+                <LogOut className="h-4 w-4 mr-2" />
+                Sair
+              </Button>
+            </div>
           </div>
         </div>
       </header>
 
-      <div className="container mx-auto px-4 py-6">
+      <main className="max-w-screen-2xl mx-auto px-4 lg:px-8 py-8">
         {/* Stats Cards */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-4 gap-3 lg:gap-4 mb-6">
-          <Card>
-            <CardContent className="flex items-center p-4">
-              <Users className="h-8 w-8 text-primary mr-3" />
-              <div>
-                <p className="text-2xl font-bold">{stats.totalStudents}</p>
-                <p className="text-sm text-muted-foreground">Alunos Ativos</p>
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6 mb-8">
+          <Card className="hover-scale transition-all duration-300 border-0 bg-gradient-to-br from-primary/5 to-primary/10 hover:shadow-lg">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-3xl font-bold text-primary">{stats.totalStudents}</p>
+                  <p className="text-sm font-medium text-muted-foreground">Alunos Ativos</p>
+                </div>
+                <div className="bg-primary/10 p-3 rounded-xl">
+                  <Users className="h-6 w-6 text-primary" />
+                </div>
               </div>
             </CardContent>
           </Card>
           
-          <Card>
-            <CardContent className="flex items-center p-4">
-              <Dumbbell className="h-8 w-8 text-secondary mr-3" />
-              <div>
-                <p className="text-2xl font-bold">{stats.activeWorkouts}</p>
-                <p className="text-sm text-muted-foreground">Treinos Ativos</p>
+          <Card className="hover-scale transition-all duration-300 border-0 bg-gradient-to-br from-secondary/5 to-secondary/10 hover:shadow-lg">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-3xl font-bold text-secondary">{stats.activeWorkouts}</p>
+                  <p className="text-sm font-medium text-muted-foreground">Treinos Ativos</p>
+                </div>
+                <div className="bg-secondary/10 p-3 rounded-xl">
+                  <Dumbbell className="h-6 w-6 text-secondary" />
+                </div>
               </div>
             </CardContent>
           </Card>
           
-          <Card>
-            <CardContent className="flex items-center p-4">
-              <Target className="h-8 w-8 text-success mr-3" />
-              <div>
-                <p className="text-2xl font-bold">{stats.activeDiets}</p>
-                <p className="text-sm text-muted-foreground">Dietas Ativas</p>
+          <Card className="hover-scale transition-all duration-300 border-0 bg-gradient-to-br from-success/5 to-success/10 hover:shadow-lg">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-3xl font-bold text-success">{stats.activeDiets}</p>
+                  <p className="text-sm font-medium text-muted-foreground">Dietas Ativas</p>
+                </div>
+                <div className="bg-success/10 p-3 rounded-xl">
+                  <Target className="h-6 w-6 text-success" />
+                </div>
               </div>
             </CardContent>
           </Card>
           
-          <Card>
-            <CardContent className="flex items-center p-4">
-              <TrendingUp className="h-8 w-8 text-warning mr-3" />
-              <div>
-                <p className="text-2xl font-bold">{stats.completedExercisesToday}</p>
-                <p className="text-sm text-muted-foreground">Exercícios Hoje</p>
+          <Card className="hover-scale transition-all duration-300 border-0 bg-gradient-to-br from-warning/5 to-warning/10 hover:shadow-lg">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-3xl font-bold text-warning">{stats.completedExercisesToday}</p>
+                  <p className="text-sm font-medium text-muted-foreground">Exercícios Hoje</p>
+                </div>
+                <div className="bg-warning/10 p-3 rounded-xl">
+                  <TrendingUp className="h-6 w-6 text-warning" />
+                </div>
               </div>
             </CardContent>
           </Card>
         </div>
 
         {/* Main Content */}
-        <Tabs defaultValue="students" className="space-y-4">
-          <TabsList className="grid grid-cols-3 lg:grid-cols-5 w-full max-w-full lg:max-w-3xl">
-            <TabsTrigger value="students" className="text-xs lg:text-sm">Alunos</TabsTrigger>
-            <TabsTrigger value="exercises" className="text-xs lg:text-sm">
-              <span className="hidden sm:inline">Exercícios</span>
-              <span className="sm:hidden">Exerc.</span>
-            </TabsTrigger>
-            <TabsTrigger value="workouts" className="text-xs lg:text-sm">Treinos</TabsTrigger>
-            <TabsTrigger value="diets" className="text-xs lg:text-sm">Dietas</TabsTrigger>
-            <TabsTrigger value="reports" className="text-xs lg:text-sm">
-              <span className="hidden sm:inline">Relatórios</span>
-              <span className="sm:hidden">Relat.</span>
-            </TabsTrigger>
-          </TabsList>
-
-          <TabsContent value="students" className="space-y-4">
-            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
-              <h2 className="text-xl font-semibold">Gerenciar Alunos</h2>
-              <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
-                <Button onClick={() => setShowTestCreator(true)} variant="outline" className="w-full sm:w-auto">
-                  Teste Debug
-                </Button>
-                <Button onClick={() => setShowCreateStudent(true)} className="w-full sm:w-auto">
-                  <Plus className="h-4 w-4 mr-2" />
-                  Novo Aluno
-                </Button>
+        <Card className="border-0 shadow-sm">
+          <CardContent className="p-0">
+            <Tabs defaultValue="students" className="w-full">
+              <div className="border-b px-6 pt-6">
+                <TabsList className="grid grid-cols-3 lg:grid-cols-5 w-full max-w-2xl bg-muted/50">
+                  <TabsTrigger value="students" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+                    <Users className="h-4 w-4 mr-2" />
+                    <span className="hidden sm:inline">Alunos</span>
+                  </TabsTrigger>
+                  <TabsTrigger value="exercises" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+                    <Activity className="h-4 w-4 mr-2" />
+                    <span className="hidden sm:inline">Exercícios</span>
+                    <span className="sm:hidden">Exerc.</span>
+                  </TabsTrigger>
+                  <TabsTrigger value="workouts" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+                    <Dumbbell className="h-4 w-4 mr-2" />
+                    <span className="hidden sm:inline">Treinos</span>
+                  </TabsTrigger>
+                  <TabsTrigger value="diets" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+                    <Target className="h-4 w-4 mr-2" />
+                    <span className="hidden sm:inline">Dietas</span>
+                  </TabsTrigger>
+                  <TabsTrigger value="reports" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+                    <TrendingUp className="h-4 w-4 mr-2" />
+                    <span className="hidden sm:inline">Relatórios</span>
+                    <span className="sm:hidden">Relat.</span>
+                  </TabsTrigger>
+                </TabsList>
               </div>
-            </div>
-            
-            {showCreateStudent ? (
-              <CreateStudent
-                trainerId={trainer.id}
-                onClose={() => setShowCreateStudent(false)}
-                onSuccess={() => {
-                  setShowCreateStudent(false);
-                  loadStats(trainer.id);
-                }}
-              />
-            ) : showTestCreator ? (
-              <StudentTestCreator
-                trainerId={trainer.id}
-                onClose={() => setShowTestCreator(false)}
-                onSuccess={() => {
-                  setShowTestCreator(false);
-                  loadStats(trainer.id);
-                }}
-              />
-            ) : (
-              <StudentList trainerId={trainer.id} />
-            )}
-          </TabsContent>
 
-          <TabsContent value="exercises" className="space-y-4">
-            <ExerciseManager trainerId={trainer.id} />
-          </TabsContent>
+              <div className="p-6">
+                <TabsContent value="students" className="mt-0 space-y-6">
+                  <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
+                    <div>
+                      <h2 className="text-2xl font-bold">Gerenciar Alunos</h2>
+                      <p className="text-muted-foreground">Cadastre e acompanhe seus alunos</p>
+                    </div>
+                    <div className="flex flex-col sm:flex-row gap-3 w-full lg:w-auto">
+                      <Button 
+                        onClick={() => setShowTestCreator(true)} 
+                        variant="outline" 
+                        className="hover-scale w-full sm:w-auto"
+                      >
+                        Teste Debug
+                      </Button>
+                      <Button 
+                        onClick={() => setShowCreateStudent(true)} 
+                        className="hover-scale w-full sm:w-auto bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary"
+                      >
+                        <Plus className="h-4 w-4 mr-2" />
+                        Novo Aluno
+                      </Button>
+                    </div>
+                  </div>
+                  
+                  <div className="animate-fade-in">
+                    {showCreateStudent ? (
+                      <CreateStudent
+                        trainerId={trainer.id}
+                        onClose={() => setShowCreateStudent(false)}
+                        onSuccess={() => {
+                          setShowCreateStudent(false);
+                          loadStats(trainer.id);
+                        }}
+                      />
+                    ) : showTestCreator ? (
+                      <StudentTestCreator
+                        trainerId={trainer.id}
+                        onClose={() => setShowTestCreator(false)}
+                        onSuccess={() => {
+                          setShowTestCreator(false);
+                          loadStats(trainer.id);
+                        }}
+                      />
+                    ) : (
+                      <StudentList trainerId={trainer.id} />
+                    )}
+                  </div>
+                </TabsContent>
 
-          <TabsContent value="workouts" className="space-y-4">
-            <WorkoutManager trainerId={trainer.id} />
-          </TabsContent>
+                <TabsContent value="exercises" className="mt-0 animate-fade-in">
+                  <ExerciseManager trainerId={trainer.id} />
+                </TabsContent>
 
-          <TabsContent value="diets" className="space-y-4">
-            <DietManager trainerId={trainer.id} />
-          </TabsContent>
+                <TabsContent value="workouts" className="mt-0 animate-fade-in">
+                  <WorkoutManager trainerId={trainer.id} />
+                </TabsContent>
 
-          <TabsContent value="reports" className="space-y-4">
-            <ReportsManager trainerId={trainer.id} />
-          </TabsContent>
-        </Tabs>
-      </div>
+                <TabsContent value="diets" className="mt-0 animate-fade-in">
+                  <DietManager trainerId={trainer.id} />
+                </TabsContent>
+
+                <TabsContent value="reports" className="mt-0 animate-fade-in">
+                  <ReportsManager trainerId={trainer.id} />
+                </TabsContent>
+              </div>
+            </Tabs>
+          </CardContent>
+        </Card>
+      </main>
 
       {/* Edit Profile Modal */}
       {showEditProfile && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-          <div className="max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50 animate-fade-in">
+          <div className="max-w-2xl w-full max-h-[90vh] overflow-y-auto animate-scale-in">
             <EditTrainerProfile
               trainer={trainer}
               onClose={() => setShowEditProfile(false)}

@@ -3,7 +3,8 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Skeleton } from "@/components/ui/skeleton";
 import { 
   User, 
   Calendar,
@@ -14,7 +15,9 @@ import {
   Target,
   Utensils,
   Trash2,
-  Edit
+  Edit,
+  Users,
+  Copy
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -33,7 +36,7 @@ interface Student {
   goals?: string[];
   unique_link_token: string;
   created_at: string;
-  workout_plans?: {
+  workoutPlans?: {
     id: string;
     name: string;
     active: boolean;
@@ -42,7 +45,7 @@ interface Student {
       name: string;
     }[];
   }[];
-  diet_plans?: {
+  dietPlans?: {
     id: string;
     name: string;
     active: boolean;
@@ -106,18 +109,16 @@ const StudentList = ({ trainerId }: StudentListProps) => {
     }
   };
 
-  const copyStudentLink = (token: string) => {
-    const link = `${window.location.origin}/student/${token}`;
+  const copyStudentLink = (student: Student) => {
+    const link = `${window.location.origin}/student/${student.unique_link_token}`;
     navigator.clipboard.writeText(link);
     toast({
       title: "Link copiado!",
-      description: "O link do aluno foi copiado para a área de transferência.",
+      description: `O link do aluno ${student.name} foi copiado para a área de transferência.`,
     });
   };
 
-  const deleteStudent = async (studentId: string, studentName: string) => {
-    if (!confirm(`Tem certeza que deseja excluir o aluno ${studentName}?`)) return;
-
+  const deleteStudent = async (studentId: string) => {
     try {
       const { error } = await supabase
         .from("students")
@@ -127,8 +128,8 @@ const StudentList = ({ trainerId }: StudentListProps) => {
       if (error) throw error;
 
       toast({
-        title: "Aluno excluído!",
-        description: `${studentName} foi excluído com sucesso.`,
+        title: "Aluno excluído",
+        description: "O aluno foi removido com sucesso.",
       });
 
       loadStudents();
@@ -163,6 +164,7 @@ const StudentList = ({ trainerId }: StudentListProps) => {
     return age;
   };
 
+  // Dialog handlers
   const openProfileDialog = (student: Student) => {
     setSelectedStudent(student);
     setDialogType('profile');
@@ -185,213 +187,181 @@ const StudentList = ({ trainerId }: StudentListProps) => {
 
   const handleSuccess = () => {
     closeDialog();
-    loadStudents(); // Refresh the student list if needed
+    loadStudents();
   };
 
-  if (isLoading) {
-    return (
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {[1, 2, 3].map((i) => (
-          <Card key={i} className="animate-pulse">
-            <CardContent className="p-4">
-              <div className="h-4 bg-muted rounded mb-2" />
-              <div className="h-3 bg-muted rounded w-3/4" />
-            </CardContent>
-          </Card>
-        ))}
-      </div>
-    );
-  }
-
-  if (students.length === 0) {
-    return (
-      <Card>
-        <CardContent className="text-center py-8">
-          <User className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-          <p className="text-muted-foreground">
-            Nenhum aluno cadastrado ainda.
-          </p>
-          <p className="text-sm text-muted-foreground">
-            Clique em "Novo Aluno" para começar.
-          </p>
-        </CardContent>
-      </Card>
-    );
-  }
-
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-      {students.map((student) => (
-        <Card key={student.id} className="hover:shadow-lg transition-shadow">
-          <CardHeader className="pb-3">
-            <div className="flex items-start justify-between">
-              <div 
-                className="flex items-center gap-3 cursor-pointer flex-1" 
-                onClick={() => openProfileDialog(student)}
-              >
-                <Avatar className="h-12 w-12">
-                  <AvatarFallback className="bg-primary text-primary-foreground">
-                    {getStudentInitials(student.name)}
-                  </AvatarFallback>
-                </Avatar>
-                <div>
-                  <CardTitle className="text-lg hover:text-primary transition-colors">{student.name}</CardTitle>
-                  <p className="text-sm text-muted-foreground">
-                    Desde {new Date(student.created_at).toLocaleDateString('pt-BR')}
-                  </p>
+    <div className="space-y-6 animate-fade-in">
+      {isLoading ? (
+        <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
+          {[...Array(6)].map((_, i) => (
+            <Card key={i} className="border-0 shadow-md">
+              <CardHeader className="pb-4">
+                <div className="flex items-center gap-3">
+                  <Skeleton className="w-12 h-12 rounded-full" />
+                  <div className="space-y-2">
+                    <Skeleton className="h-5 w-32" />
+                    <Skeleton className="h-4 w-24" />
+                  </div>
                 </div>
-              </div>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => openProfileDialog(student)}
-              >
-                <Edit className="h-4 w-4 mr-2" />
-                Ver Prontuário
-              </Button>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid grid-cols-2 gap-3">
+                  <Skeleton className="h-4 w-20" />
+                  <Skeleton className="h-4 w-16" />
+                </div>
+                <div className="flex gap-2">
+                  <Skeleton className="h-6 w-16" />
+                  <Skeleton className="h-6 w-12" />
+                </div>
+                <div className="grid grid-cols-2 gap-2">
+                  <Skeleton className="h-8 w-full" />
+                  <Skeleton className="h-8 w-full" />
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      ) : students.length === 0 ? (
+        <Card className="border-0 shadow-md">
+          <CardContent className="text-center py-16">
+            <div className="bg-muted/50 rounded-full w-20 h-20 flex items-center justify-center mx-auto mb-6">
+              <Users className="h-10 w-10 text-muted-foreground/50" />
             </div>
-          </CardHeader>
-          
-          <CardContent className="space-y-3">
-            {/* Contact Info */}
-            {student.email && (
-              <div className="flex items-center gap-2 text-sm">
-                <Mail className="h-4 w-4 text-muted-foreground" />
-                <span className="truncate">{student.email}</span>
-              </div>
-            )}
-            
-            {student.phone && (
-              <div className="flex items-center gap-2 text-sm">
-                <Phone className="h-4 w-4 text-muted-foreground" />
-                <span>{student.phone}</span>
-              </div>
-            )}
-
-            {/* Personal Info */}
-            <div className="grid grid-cols-2 gap-4 text-sm">
-              {student.birth_date && (
-                <div className="flex items-center gap-1">
-                  <Calendar className="h-3 w-3 text-muted-foreground" />
-                  <span>{calculateAge(student.birth_date)} anos</span>
-                </div>
-              )}
-              
-              {student.weight && (
-                <div>
-                  <span className="text-muted-foreground">Peso:</span>
-                  <span className="ml-1 font-medium">{student.weight}kg</span>
-                </div>
-              )}
-              
-              {student.height && (
-                <div>
-                  <span className="text-muted-foreground">Altura:</span>
-                  <span className="ml-1 font-medium">{student.height}m</span>
-                </div>
-              )}
-            </div>
-
-            {/* Goals */}
-            {student.goals && student.goals.length > 0 && (
-              <div className="space-y-2">
-                <div className="flex items-center gap-2">
-                  <Target className="h-4 w-4 text-muted-foreground" />
-                  <span className="text-sm font-medium">Objetivos:</span>
-                </div>
-                <div className="flex flex-wrap gap-1">
-                  {student.goals.map((goal, index) => (
-                    <Badge key={index} variant="secondary" className="text-xs">
-                      {goal}
-                    </Badge>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* Training Plans Summary */}
-            <div className="space-y-2">
-              <div className="grid grid-cols-2 gap-4 text-sm">
-                <div className="flex items-center gap-2">
-                  <Dumbbell className="h-4 w-4 text-muted-foreground" />
-                  <span className="font-medium">
-                    Treinos: {student.workout_plans?.filter(plan => plan.active).length || 0}
-                  </span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Utensils className="h-4 w-4 text-muted-foreground" />
-                  <span className="font-medium">
-                    Dietas: {student.diet_plans?.filter(plan => plan.active).length || 0}
-                  </span>
-                </div>
-              </div>
-
-              {/* Active Workout Plans */}
-              {student.workout_plans && student.workout_plans.filter(plan => plan.active).length > 0 && (
-                <div className="space-y-1">
-                  <span className="text-xs font-medium text-muted-foreground">Treinos Ativos:</span>
-                  {student.workout_plans.filter(plan => plan.active).slice(0, 2).map(plan => (
-                    <div key={plan.id} className="text-xs bg-primary/10 text-primary px-2 py-1 rounded">
-                      {plan.name} ({plan.workout_sessions?.length || 0} sessões)
+            <h3 className="text-xl font-semibold mb-2">Nenhum aluno cadastrado</h3>
+            <p className="text-muted-foreground max-w-md mx-auto">
+              Comece cadastrando seu primeiro aluno para criar treinos e dietas personalizadas.
+            </p>
+          </CardContent>
+        </Card>
+      ) : (
+        <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
+          {students.map((student) => (
+            <Card key={student.id} className="hover-scale transition-all duration-300 border-0 shadow-md hover:shadow-xl bg-gradient-to-br from-card to-card/50">
+              <CardHeader className="pb-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="bg-gradient-to-br from-primary to-primary/80 text-primary-foreground rounded-full w-12 h-12 flex items-center justify-center font-semibold text-lg">
+                      {getStudentInitials(student.name)}
                     </div>
-                  ))}
-                  {student.workout_plans.filter(plan => plan.active).length > 2 && (
-                    <div className="text-xs text-muted-foreground">
-                      +{student.workout_plans.filter(plan => plan.active).length - 2} mais
+                    <div>
+                      <CardTitle className="text-lg">{student.name}</CardTitle>
+                      <p className="text-sm text-muted-foreground">
+                        {student.email || student.phone || "Sem contato"}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </CardHeader>
+              
+              <CardContent className="space-y-4">
+                {/* Personal Info */}
+                <div className="grid grid-cols-2 gap-3 text-sm">
+                  {student.birth_date && (
+                    <div className="flex items-center gap-2">
+                      <Calendar className="h-4 w-4 text-muted-foreground" />
+                      <span>{calculateAge(student.birth_date)} anos</span>
+                    </div>
+                  )}
+                  {student.weight && (
+                    <div className="flex items-center gap-2">
+                      <span className="text-muted-foreground">Peso:</span>
+                      <span className="font-medium">{student.weight}kg</span>
                     </div>
                   )}
                 </div>
-              )}
-            </div>
 
-            {/* Actions */}
-            <div className="pt-2 space-y-2">
-              <Button
-                variant="outline"
-                size="sm"
-                className="w-full"
-                onClick={() => copyStudentLink(student.unique_link_token)}
-              >
-                <ExternalLink className="h-4 w-4 mr-2" />
-                Copiar Link do Aluno
-              </Button>
-              
-              <div className="grid grid-cols-2 gap-2">
-                <Button 
-                  variant="secondary" 
+                {/* Goals */}
+                {student.goals && student.goals.length > 0 && (
+                  <div className="flex flex-wrap gap-1">
+                    {student.goals.slice(0, 2).map((goal, index) => (
+                      <Badge key={index} variant="secondary" className="text-xs">
+                        {goal}
+                      </Badge>
+                    ))}
+                    {student.goals.length > 2 && (
+                      <Badge variant="outline" className="text-xs">
+                        +{student.goals.length - 2}
+                      </Badge>
+                    )}
+                  </div>
+                )}
+
+                {/* Plans Summary */}
+                <div className="flex justify-between items-center pt-2 border-t">
+                  <div className="flex gap-4 text-sm">
+                    <div className="text-center">
+                      <p className="font-semibold text-primary">{student.workoutPlans?.filter(w => w.active).length || 0}</p>
+                      <p className="text-xs text-muted-foreground">Treinos</p>
+                    </div>
+                    <div className="text-center">
+                      <p className="font-semibold text-success">{student.dietPlans?.filter(d => d.active).length || 0}</p>
+                      <p className="text-xs text-muted-foreground">Dietas</p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Action Buttons */}
+                <div className="grid grid-cols-2 gap-2 pt-4">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => copyStudentLink(student)}
+                    className="hover-scale text-xs"
+                  >
+                    <Copy className="h-3 w-3 mr-1" />
+                    Link
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => openProfileDialog(student)}
+                    className="hover-scale text-xs"
+                  >
+                    <User className="h-3 w-3 mr-1" />
+                    Perfil
+                  </Button>
+                </div>
+
+                <div className="grid grid-cols-2 gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => openWorkoutDialog(student)}
+                    className="hover-scale text-xs bg-primary/5 hover:bg-primary/10 border-primary/20"
+                  >
+                    <Dumbbell className="h-3 w-3 mr-1" />
+                    Treino
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => openDietDialog(student)}
+                    className="hover-scale text-xs bg-success/5 hover:bg-success/10 border-success/20"
+                  >
+                    <Utensils className="h-3 w-3 mr-1" />
+                    Dieta
+                  </Button>
+                </div>
+
+                <Button
+                  variant="ghost"
                   size="sm"
-                  onClick={() => openWorkoutDialog(student)}
+                  onClick={() => deleteStudent(student.id)}
+                  className="w-full text-destructive hover:text-destructive hover:bg-destructive/10 text-xs"
                 >
-                  <Dumbbell className="h-4 w-4 mr-2" />
-                  Treinos
+                  <Trash2 className="h-3 w-3 mr-1" />
+                  Excluir Aluno
                 </Button>
-                <Button 
-                  variant="secondary" 
-                  size="sm"
-                  onClick={() => openDietDialog(student)}
-                >
-                  <Utensils className="h-4 w-4 mr-2" />
-                  Dietas
-                </Button>
-              </div>
-              
-              <Button 
-                variant="destructive" 
-                size="sm"
-                className="w-full"
-                onClick={() => deleteStudent(student.id, student.name)}
-              >
-                <Trash2 className="h-4 w-4 mr-2" />
-                Excluir Aluno
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-      ))}
-      
-      {/* Dialogs */}
-      <Dialog open={dialogType === 'profile'} onOpenChange={() => setDialogType(null)}>
-        <DialogContent className="max-w-7xl max-h-[95vh] overflow-y-auto p-0">
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      )}
+
+      {/* Profile Dialog */}
+      <Dialog open={dialogType === 'profile'} onOpenChange={(open) => !open && closeDialog()}>
+        <DialogContent className="max-w-6xl w-full max-h-[95vh] overflow-hidden bg-card/95 backdrop-blur border-0 shadow-2xl animate-scale-in">
           {selectedStudent && (
             <StudentProfile
               student={selectedStudent}
@@ -402,30 +372,46 @@ const StudentList = ({ trainerId }: StudentListProps) => {
         </DialogContent>
       </Dialog>
 
-      <Dialog open={dialogType === 'workout'} onOpenChange={() => setDialogType(null)}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+      {/* Workout Dialog */}
+      <Dialog open={dialogType === 'workout'} onOpenChange={(open) => !open && closeDialog()}>
+        <DialogContent className="max-w-4xl w-full max-h-[95vh] overflow-hidden bg-card/95 backdrop-blur border-0 shadow-2xl animate-scale-in">
+          <DialogHeader className="pb-4">
+            <DialogTitle className="text-xl font-bold bg-gradient-to-r from-primary to-primary/80 bg-clip-text text-transparent">
+              Gerenciar Treino - {selectedStudent?.name}
+            </DialogTitle>
+          </DialogHeader>
           {selectedStudent && (
-            <QuickWorkoutCreator
-              studentId={selectedStudent.id}
-              studentName={selectedStudent.name}
-              trainerId={trainerId}
-              onClose={closeDialog}
-              onSuccess={handleSuccess}
-            />
+            <div className="overflow-y-auto max-h-[80vh]">
+              <QuickWorkoutCreator
+                trainerId={trainerId}
+                studentId={selectedStudent.id}
+                studentName={selectedStudent.name}
+                onClose={closeDialog}
+                onSuccess={handleSuccess}
+              />
+            </div>
           )}
         </DialogContent>
       </Dialog>
 
-      <Dialog open={dialogType === 'diet'} onOpenChange={() => setDialogType(null)}>
-        <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
+      {/* Diet Dialog */}
+      <Dialog open={dialogType === 'diet'} onOpenChange={(open) => !open && closeDialog()}>
+        <DialogContent className="max-w-4xl w-full max-h-[95vh] overflow-hidden bg-card/95 backdrop-blur border-0 shadow-2xl animate-scale-in">
+          <DialogHeader className="pb-4">
+            <DialogTitle className="text-xl font-bold bg-gradient-to-r from-success to-success/80 bg-clip-text text-transparent">
+              Gerenciar Dieta - {selectedStudent?.name}
+            </DialogTitle>
+          </DialogHeader>
           {selectedStudent && (
-            <QuickDietCreator
-              studentId={selectedStudent.id}
-              studentName={selectedStudent.name}
-              trainerId={trainerId}
-              onClose={closeDialog}
-              onSuccess={handleSuccess}
-            />
+            <div className="overflow-y-auto max-h-[80vh]">
+              <QuickDietCreator
+                trainerId={trainerId}
+                studentId={selectedStudent.id}
+                studentName={selectedStudent.name}
+                onClose={closeDialog}
+                onSuccess={handleSuccess}
+              />
+            </div>
           )}
         </DialogContent>
       </Dialog>
