@@ -310,6 +310,7 @@ export type Database = {
       }
       personal_trainers: {
         Row: {
+          active: boolean
           birth_date: string
           cpf: string
           created_at: string
@@ -322,6 +323,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          active?: boolean
           birth_date: string
           cpf: string
           created_at?: string
@@ -334,6 +336,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          active?: boolean
           birth_date?: string
           cpf?: string
           created_at?: string
@@ -405,6 +408,33 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      super_admins: {
+        Row: {
+          created_at: string
+          email: string
+          id: string
+          name: string
+          password_hash: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          id?: string
+          name?: string
+          password_hash: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          id?: string
+          name?: string
+          password_hash?: string
+          updated_at?: string
+        }
+        Relationships: []
       }
       workout_exercises: {
         Row: {

@@ -18,6 +18,9 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import StudentList from "@/components/StudentList";
 import CreateStudent from "@/components/CreateStudent";
+import WorkoutManager from "@/components/WorkoutManager";
+import DietManager from "@/components/DietManager";
+import ReportsManager from "@/components/ReportsManager";
 
 interface PersonalTrainer {
   id: string;
