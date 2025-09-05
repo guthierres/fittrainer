@@ -16,6 +16,12 @@ interface Exercise {
   category_id: string;
 }
 
+interface ExerciseCategory {
+  id: string;
+  name: string;
+  emoji: string;
+}
+
 interface WorkoutExercise {
   exercise_id: string;
   exercise_name: string;
@@ -25,6 +31,14 @@ interface WorkoutExercise {
   weight_kg: number;
   rest_seconds: number;
   order_index: number;
+}
+
+interface WorkoutSession {
+  day: number;
+  name: string;
+  category_id: string;
+  category_name: string;
+  exercises: WorkoutExercise[];
 }
 
 interface QuickWorkoutCreatorProps {
@@ -54,48 +68,74 @@ const QuickWorkoutCreator = ({ studentId, studentName, trainerId, onClose, onSuc
   });
   
   const [exercises, setExercises] = useState<Exercise[]>([]);
-  const [sessions, setSessions] = useState<Array<{
-    day: number;
-    name: string;
-    exercises: WorkoutExercise[];
-  }>>([]);
-  const [selectedDays, setSelectedDays] = useState<number[]>([]);
+  const [categories, setCategories] = useState<ExerciseCategory[]>([]);
+  const [sessions, setSessions] = useState<WorkoutSession[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
-    loadExercises();
+    loadData();
   }, []);
 
-  const loadExercises = async () => {
+  const loadData = async () => {
     try {
-      const { data, error } = await supabase
-        .from("exercises")
-        .select("id, name, category_id")
-        .order("name");
+      // Load exercises and categories in parallel
+      const [exercisesResponse, categoriesResponse] = await Promise.all([
+        supabase.from("exercises").select("id, name, category_id").order("name"),
+        supabase.from("exercise_categories").select("id, name, emoji").order("name")
+      ]);
 
-      if (error) throw error;
-      setExercises(data || []);
+      if (exercisesResponse.error) throw exercisesResponse.error;
+      if (categoriesResponse.error) throw categoriesResponse.error;
+
+      setExercises(exercisesResponse.data || []);
+      setCategories(categoriesResponse.data || []);
     } catch (error) {
-      console.error("Error loading exercises:", error);
+      console.error("Error loading data:", error);
     }
   };
 
-  const handleDayToggle = (day: number) => {
-    if (selectedDays.includes(day)) {
-      setSelectedDays(prev => prev.filter(d => d !== day));
-      setSessions(prev => prev.filter(s => s.day !== day));
-    } else {
-      setSelectedDays(prev => [...prev, day]);
-      setSessions(prev => [...prev, {
-        day,
-        name: `Treino ${DAYS_OF_WEEK.find(d => d.value === day)?.label}`,
+  const addTrainingDay = () => {
+    // Find the first available day that's not already selected
+    const availableDay = DAYS_OF_WEEK.find(day => 
+      !sessions.some(session => session.day === day.value)
+    );
+    
+    if (availableDay) {
+      const newSession: WorkoutSession = {
+        day: availableDay.value,
+        name: `Treino ${availableDay.label}`,
+        category_id: "",
+        category_name: "",
         exercises: []
-      }]);
+      };
+      setSessions(prev => [...prev, newSession]);
+      setFormData(prev => ({ ...prev, frequency_per_week: sessions.length + 1 }));
     }
   };
 
-  const addExerciseToSession = (sessionDay: number, exerciseId: string) => {
+  const removeTrainingDay = (dayToRemove: number) => {
+    setSessions(prev => prev.filter(session => session.day !== dayToRemove));
+    setFormData(prev => ({ ...prev, frequency_per_week: Math.max(1, sessions.length - 1) }));
+  };
+
+  const updateSessionCategory = (sessionIndex: number, categoryId: string) => {
+    const category = categories.find(c => c.id === categoryId);
+    if (!category) return;
+
+    setSessions(prev => prev.map((session, idx) => 
+      idx === sessionIndex 
+        ? { 
+            ...session, 
+            category_id: categoryId, 
+            category_name: category.name,
+            exercises: [] // Clear exercises when category changes
+          }
+        : session
+    ));
+  };
+
+  const addExerciseToSession = (sessionIndex: number, exerciseId: string) => {
     const exercise = exercises.find(e => e.id === exerciseId);
     if (!exercise) return;
 
@@ -110,23 +150,23 @@ const QuickWorkoutCreator = ({ studentId, studentName, trainerId, onClose, onSuc
       order_index: 0,
     };
 
-    setSessions(prev => prev.map(session => {
-      if (session.day === sessionDay) {
+    setSessions(prev => prev.map((session, idx) => {
+      if (idx === sessionIndex) {
         const updatedExercises = [...session.exercises, newExercise];
         return {
           ...session,
-          exercises: updatedExercises.map((ex, idx) => ({ ...ex, order_index: idx }))
+          exercises: updatedExercises.map((ex, exIdx) => ({ ...ex, order_index: exIdx }))
         };
       }
       return session;
     }));
   };
 
-  const updateExerciseInSession = (sessionDay: number, exerciseIndex: number, field: string, value: number) => {
-    setSessions(prev => prev.map(session => {
-      if (session.day === sessionDay) {
-        const updatedExercises = session.exercises.map((ex, idx) => 
-          idx === exerciseIndex ? { ...ex, [field]: value } : ex
+  const updateExerciseInSession = (sessionIndex: number, exerciseIndex: number, field: string, value: number) => {
+    setSessions(prev => prev.map((session, idx) => {
+      if (idx === sessionIndex) {
+        const updatedExercises = session.exercises.map((ex, exIdx) => 
+          exIdx === exerciseIndex ? { ...ex, [field]: value } : ex
         );
         return { ...session, exercises: updatedExercises };
       }
@@ -134,13 +174,13 @@ const QuickWorkoutCreator = ({ studentId, studentName, trainerId, onClose, onSuc
     }));
   };
 
-  const removeExerciseFromSession = (sessionDay: number, exerciseIndex: number) => {
-    setSessions(prev => prev.map(session => {
-      if (session.day === sessionDay) {
-        const updatedExercises = session.exercises.filter((_, idx) => idx !== exerciseIndex);
+  const removeExerciseFromSession = (sessionIndex: number, exerciseIndex: number) => {
+    setSessions(prev => prev.map((session, idx) => {
+      if (idx === sessionIndex) {
+        const updatedExercises = session.exercises.filter((_, exIdx) => exIdx !== exerciseIndex);
         return {
           ...session,
-          exercises: updatedExercises.map((ex, idx) => ({ ...ex, order_index: idx }))
+          exercises: updatedExercises.map((ex, exIdx) => ({ ...ex, order_index: exIdx }))
         };
       }
       return session;
@@ -292,106 +332,173 @@ const QuickWorkoutCreator = ({ studentId, studentName, trainerId, onClose, onSuc
             />
           </div>
 
-          {/* Days Selection */}
+          {/* Training Days Management */}
           <div className="space-y-3">
-            <Label>Dias da Semana</Label>
-            <div className="flex flex-wrap gap-2">
-              {DAYS_OF_WEEK.map(day => (
-                <Badge
-                  key={day.value}
-                  variant={selectedDays.includes(day.value) ? "default" : "outline"}
-                  className="cursor-pointer"
-                  onClick={() => handleDayToggle(day.value)}
-                >
-                  {day.label}
-                </Badge>
-              ))}
+            <div className="flex items-center justify-between">
+              <Label>Dias de Treino ({sessions.length} dia{sessions.length !== 1 ? 's' : ''})</Label>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={addTrainingDay}
+                disabled={sessions.length >= 7}
+              >
+                <Plus className="h-4 w-4 mr-2" />
+                Adicionar Dia
+              </Button>
             </div>
+            
+            {sessions.length > 0 && (
+              <div className="flex flex-wrap gap-2">
+                {sessions.map((session, idx) => (
+                  <Badge key={session.day} variant="default" className="flex items-center gap-2">
+                    {DAYS_OF_WEEK.find(d => d.value === session.day)?.label}
+                    <X 
+                      className="h-3 w-3 cursor-pointer" 
+                      onClick={() => removeTrainingDay(session.day)}
+                    />
+                  </Badge>
+                ))}
+              </div>
+            )}
           </div>
 
-          {/* Sessions */}
-          {sessions.map(session => (
-            <Card key={session.day} className="border-2">
-              <CardHeader className="pb-3">
-                <CardTitle className="text-lg">
-                  {DAYS_OF_WEEK.find(d => d.value === session.day)?.label}
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="flex gap-2">
-                  <Select
-                    onValueChange={(exerciseId) => addExerciseToSession(session.day, exerciseId)}
-                  >
-                    <SelectTrigger className="flex-1">
-                      <SelectValue placeholder="Adicionar exercício" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {exercises.map(exercise => (
-                        <SelectItem key={exercise.id} value={exercise.id}>
-                          {exercise.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                {session.exercises.map((exercise, idx) => (
-                  <div key={idx} className="grid grid-cols-6 gap-2 items-end p-3 bg-muted rounded-lg">
-                    <div className="col-span-2">
-                      <Label className="text-xs">{exercise.exercise_name}</Label>
-                    </div>
-                    <div>
-                      <Label className="text-xs">Séries</Label>
-                      <Input
-                        type="number"
-                        value={exercise.sets}
-                        onChange={(e) => updateExerciseInSession(session.day, idx, 'sets', parseInt(e.target.value) || 0)}
-                        min="1"
-                        max="10"
-                      />
-                    </div>
-                    <div>
-                      <Label className="text-xs">Reps</Label>
-                      <div className="flex gap-1">
-                        <Input
-                          type="number"
-                          value={exercise.reps_min}
-                          onChange={(e) => updateExerciseInSession(session.day, idx, 'reps_min', parseInt(e.target.value) || 0)}
-                          min="1"
-                          placeholder="Min"
-                        />
-                        <Input
-                          type="number"
-                          value={exercise.reps_max}
-                          onChange={(e) => updateExerciseInSession(session.day, idx, 'reps_max', parseInt(e.target.value) || 0)}
-                          min="1"
-                          placeholder="Max"
-                        />
-                      </div>
-                    </div>
-                    <div>
-                      <Label className="text-xs">Peso (kg)</Label>
-                      <Input
-                        type="number"
-                        step="0.5"
-                        value={exercise.weight_kg}
-                        onChange={(e) => updateExerciseInSession(session.day, idx, 'weight_kg', parseFloat(e.target.value) || 0)}
-                        min="0"
-                      />
-                    </div>
+          {/* Training Sessions */}
+          {sessions.map((session, sessionIndex) => {
+            const categoryExercises = exercises.filter(ex => ex.category_id === session.category_id);
+            
+            return (
+              <Card key={session.day} className="border-2">
+                <CardHeader className="pb-3">
+                  <div className="flex items-center justify-between">
+                    <CardTitle className="text-lg">
+                      {DAYS_OF_WEEK.find(d => d.value === session.day)?.label}
+                    </CardTitle>
                     <Button
                       type="button"
                       variant="outline"
                       size="sm"
-                      onClick={() => removeExerciseFromSession(session.day, idx)}
+                      onClick={() => removeTrainingDay(session.day)}
                     >
                       <X className="h-4 w-4" />
                     </Button>
                   </div>
-                ))}
-              </CardContent>
-            </Card>
-          ))}
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  {/* Category Selection */}
+                  <div className="space-y-2">
+                    <Label>Categoria do Treino</Label>
+                    <Select
+                      value={session.category_id}
+                      onValueChange={(categoryId) => updateSessionCategory(sessionIndex, categoryId)}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Selecione a categoria (ex: Peito, Pernas...)">
+                          {session.category_name && (
+                            <span className="flex items-center gap-2">
+                              {categories.find(c => c.id === session.category_id)?.emoji} {session.category_name}
+                            </span>
+                          )}
+                        </SelectValue>
+                      </SelectTrigger>
+                      <SelectContent>
+                        {categories.map(category => (
+                          <SelectItem key={category.id} value={category.id}>
+                            <span className="flex items-center gap-2">
+                              {category.emoji} {category.name}
+                            </span>
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  {/* Exercise Selection */}
+                  {session.category_id && (
+                    <div className="space-y-2">
+                      <Label>Adicionar Exercícios</Label>
+                      <Select
+                        onValueChange={(exerciseId) => addExerciseToSession(sessionIndex, exerciseId)}
+                        key={session.exercises.length} // Reset selection after adding
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder={`Escolher exercício de ${session.category_name}`} />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {categoryExercises.map(exercise => (
+                            <SelectItem key={exercise.id} value={exercise.id}>
+                              {exercise.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  )}
+
+                  {/* Exercise List */}
+                  {session.exercises.length > 0 && (
+                    <div className="space-y-3">
+                      <Label className="text-sm font-medium">Exercícios Selecionados:</Label>
+                      {session.exercises.map((exercise, idx) => (
+                        <div key={idx} className="grid grid-cols-6 gap-2 items-end p-3 bg-muted rounded-lg">
+                          <div className="col-span-2">
+                            <Label className="text-xs font-medium">{exercise.exercise_name}</Label>
+                          </div>
+                          <div>
+                            <Label className="text-xs">Séries</Label>
+                            <Input
+                              type="number"
+                              value={exercise.sets}
+                              onChange={(e) => updateExerciseInSession(sessionIndex, idx, 'sets', parseInt(e.target.value) || 0)}
+                              min="1"
+                              max="10"
+                            />
+                          </div>
+                          <div>
+                            <Label className="text-xs">Reps</Label>
+                            <div className="flex gap-1">
+                              <Input
+                                type="number"
+                                value={exercise.reps_min}
+                                onChange={(e) => updateExerciseInSession(sessionIndex, idx, 'reps_min', parseInt(e.target.value) || 0)}
+                                min="1"
+                                placeholder="Min"
+                              />
+                              <Input
+                                type="number"
+                                value={exercise.reps_max}
+                                onChange={(e) => updateExerciseInSession(sessionIndex, idx, 'reps_max', parseInt(e.target.value) || 0)}
+                                min="1"
+                                placeholder="Max"
+                              />
+                            </div>
+                          </div>
+                          <div>
+                            <Label className="text-xs">Peso (kg)</Label>
+                            <Input
+                              type="number"
+                              step="0.5"
+                              value={exercise.weight_kg}
+                              onChange={(e) => updateExerciseInSession(sessionIndex, idx, 'weight_kg', parseFloat(e.target.value) || 0)}
+                              min="0"
+                            />
+                          </div>
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            onClick={() => removeExerciseFromSession(sessionIndex, idx)}
+                          >
+                            <X className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            );
+          })}
 
           {/* Submit Buttons */}
           <div className="flex gap-2 pt-4">
