@@ -444,27 +444,28 @@ const StudentProfile = ({ student, trainerId, onClose }: StudentProfileProps) =>
                               {workout.active ? "Ativo" : "Inativo"}
                             </Badge>
                           </div>
-                          <div className="flex flex-col sm:flex-row gap-2">
+                           <div className="flex flex-col xs:flex-row gap-2 min-w-0">
                             <Button
                               variant="outline"
                               size="sm"
-                              className="w-full sm:w-auto"
+                              className="flex-1 xs:flex-none xs:min-w-[100px]"
                               onClick={() => {
                                 setSelectedWorkoutPlan(workout);
                                 setShowWorkoutEditor(true);
                               }}
                             >
-                              <Edit className="h-4 w-4 mr-2" />
-                              <span className="hidden sm:inline">Editar</span>
-                              <span className="sm:hidden">Editar Treino</span>
+                              <Edit className="h-4 w-4 mr-1" />
+                              <span className="truncate">Editar</span>
                             </Button>
                             <Button
                               variant="outline"
                               size="sm"
-                              className="w-full sm:w-auto"
+                              className="flex-1 xs:flex-none xs:min-w-[100px]"
                               onClick={() => toggleWorkoutStatus(workout.id, workout.active)}
                             >
-                              {workout.active ? "Desativar" : "Ativar"}
+                              <span className="truncate">
+                                {workout.active ? "Desativar" : "Ativar"}
+                              </span>
                             </Button>
                           </div>
                         </div>
@@ -519,14 +520,31 @@ const StudentProfile = ({ student, trainerId, onClose }: StudentProfileProps) =>
                             <Badge variant={diet.active ? "default" : "secondary"}>
                               {diet.active ? "Ativo" : "Inativo"}
                             </Badge>
+                           </div>
+                           <div className="flex flex-col xs:flex-row gap-2 min-w-0">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="flex-1 xs:flex-none xs:min-w-[100px]"
+                              onClick={() => {
+                                setSelectedDietPlan(diet);
+                                setShowDietCreator(true);
+                              }}
+                            >
+                              <Edit className="h-4 w-4 mr-1" />
+                              <span className="truncate">Editar</span>
+                            </Button>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="flex-1 xs:flex-none xs:min-w-[100px]"
+                              onClick={() => toggleDietStatus(diet.id, diet.active)}
+                            >
+                              <span className="truncate">
+                                {diet.active ? "Desativar" : "Ativar"}
+                              </span>
+                            </Button>
                           </div>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => toggleDietStatus(diet.id, diet.active)}
-                          >
-                            {diet.active ? "Desativar" : "Ativar"}
-                          </Button>
                         </div>
                       </CardHeader>
                       <CardContent>

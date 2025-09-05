@@ -13,6 +13,7 @@ import {
   CheckCircle
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import Footer from "@/components/Footer";
 
 const Index = () => {
   const navigate = useNavigate();
@@ -210,13 +211,7 @@ const Index = () => {
         </Card>
       </section>
 
-      {/* Footer */}
-      <footer className="container mx-auto px-4 py-8 border-t">
-        <div className="text-center text-muted-foreground">
-          <p>© 2024 FitTrainer-Pro. Sistema completo de gestão para Personal Trainers.</p>
-          <p className="text-sm mt-2">Desenvolvido com ❤️ para profissionais de educação física</p>
-        </div>
-      </footer>
+      <Footer />
     </div>
   );
 };

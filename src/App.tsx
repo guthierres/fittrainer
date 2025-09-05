@@ -10,6 +10,8 @@ import StudentWorkout from "./pages/StudentWorkout";
 import StudentDiet from "./pages/StudentDiet";
 import SuperAdmin from "./pages/SuperAdmin";
 import NotFound from "./pages/NotFound";
+import PrivacyPolicy from "./pages/PrivacyPolicy";
+import TermsOfService from "./pages/TermsOfService";
 
 const queryClient = new QueryClient();
 
@@ -26,6 +28,8 @@ const App = () => (
           <Route path="/super-admin" element={<SuperAdmin />} />
           <Route path="/student/:token" element={<StudentWorkout />} />
           <Route path="/student/:token/diet" element={<StudentDiet />} />
+          <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+          <Route path="/terms-of-service" element={<TermsOfService />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>

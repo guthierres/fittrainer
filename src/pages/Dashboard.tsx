@@ -12,7 +12,9 @@ import {
   Activity,
   Target,
   Calendar,
-  TrendingUp
+  TrendingUp,
+  User,
+  Settings
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -23,6 +25,8 @@ import WorkoutManager from "@/components/WorkoutManager";
 import DietManager from "@/components/DietManager";
 import ReportsManager from "@/components/ReportsManager";
 import ExerciseManager from "@/components/ExerciseManager";
+import EditTrainerProfile from "@/components/EditTrainerProfile";
+import Footer from "@/components/Footer";
 
 interface PersonalTrainer {
   id: string;
@@ -51,6 +55,7 @@ const Dashboard = () => {
   });
   const [showCreateStudent, setShowCreateStudent] = useState(false);
   const [showTestCreator, setShowTestCreator] = useState(false);
+  const [showEditProfile, setShowEditProfile] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -137,10 +142,17 @@ const Dashboard = () => {
               </p>
             </div>
           </div>
-          <Button variant="outline" onClick={handleLogout} size="sm" className="w-full sm:w-auto">
-            <LogOut className="h-4 w-4 mr-2" />
-            Sair
-          </Button>
+          <div className="flex flex-col sm:flex-row gap-2">
+            <Button variant="outline" onClick={() => setShowEditProfile(true)} size="sm" className="w-full sm:w-auto">
+              <Settings className="h-4 w-4 mr-2" />
+              <span className="hidden sm:inline">Meu Perfil</span>
+              <span className="sm:hidden">Perfil</span>
+            </Button>
+            <Button variant="outline" onClick={handleLogout} size="sm" className="w-full sm:w-auto">
+              <LogOut className="h-4 w-4 mr-2" />
+              Sair
+            </Button>
+          </div>
         </div>
       </header>
 
@@ -258,6 +270,24 @@ const Dashboard = () => {
           </TabsContent>
         </Tabs>
       </div>
+
+      {/* Edit Profile Modal */}
+      {showEditProfile && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+          <div className="max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <EditTrainerProfile
+              trainer={trainer}
+              onClose={() => setShowEditProfile(false)}
+              onSuccess={(updatedTrainer) => {
+                setTrainer(updatedTrainer);
+                setShowEditProfile(false);
+              }}
+            />
+          </div>
+        </div>
+      )}
+
+      <Footer />
     </div>
   );
 };
