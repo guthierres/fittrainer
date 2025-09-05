@@ -13,7 +13,8 @@ import {
   Dumbbell, 
   Save, 
   Edit,
-  Trash2
+  Trash2,
+  Calendar
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -97,6 +98,7 @@ const WorkoutPlanEditor = ({
   });
   const [activeTab, setActiveTab] = useState("plan");
   const [selectedCategory, setSelectedCategory] = useState<string>("");
+  const [selectedDaysToAdd, setSelectedDaysToAdd] = useState<number[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
 
@@ -199,6 +201,69 @@ const WorkoutPlanEditor = ({
     }));
     
     setActiveTab(`session-${availableDay.value}`);
+  };
+
+  const addMultipleDays = () => {
+    if (selectedDaysToAdd.length === 0) {
+      toast({
+        title: "Selecione dias",
+        description: "Selecione pelo menos um dia para adicionar.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const usedDays = planData.sessions.map(s => s.day_of_week);
+    const validDays = selectedDaysToAdd.filter(day => !usedDays.includes(day));
+
+    if (validDays.length === 0) {
+      toast({
+        title: "Dias já existem",
+        description: "Todos os dias selecionados já foram adicionados ao plano.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const newSessions: WorkoutSession[] = validDays.map(dayValue => {
+      const dayLabel = DAYS_OF_WEEK.find(d => d.value === dayValue)?.label || "Treino";
+      return {
+        name: `Treino ${dayLabel}`,
+        day_of_week: dayValue,
+        exercises: [],
+        isNew: true
+      };
+    });
+
+    setPlanData(prev => ({
+      ...prev,
+      sessions: [...prev.sessions, ...newSessions].sort((a, b) => a.day_of_week - b.day_of_week)
+    }));
+
+    setSelectedDaysToAdd([]);
+    
+    // Switch to the first added day
+    if (validDays.length > 0) {
+      setActiveTab(`session-${validDays[0]}`);
+    }
+
+    toast({
+      title: "Dias adicionados!",
+      description: `${validDays.length} dia(s) de treino adicionado(s) com sucesso.`,
+    });
+  };
+
+  const toggleDaySelection = (dayValue: number) => {
+    setSelectedDaysToAdd(prev => 
+      prev.includes(dayValue) 
+        ? prev.filter(d => d !== dayValue)
+        : [...prev, dayValue]
+    );
+  };
+
+  const getAvailableDays = () => {
+    const usedDays = planData.sessions.map(s => s.day_of_week);
+    return DAYS_OF_WEEK.filter(day => !usedDays.includes(day.value));
   };
 
   const updateSession = (dayOfWeek: number, updates: Partial<WorkoutSession>) => {
@@ -416,7 +481,7 @@ const WorkoutPlanEditor = ({
 
         <CardContent className="overflow-y-auto max-h-[calc(90vh-120px)]">
           <Tabs value={activeTab} onValueChange={setActiveTab}>
-            <TabsList className="grid w-full grid-cols-auto overflow-x-auto">
+            <TabsList className="flex w-full overflow-x-auto">
               <TabsTrigger value="plan">Plano</TabsTrigger>
               {planData.sessions.map(session => (
                 <TabsTrigger key={session.day_of_week} value={`session-${session.day_of_week}`}>
@@ -424,15 +489,10 @@ const WorkoutPlanEditor = ({
                   <Badge variant="secondary" className="ml-1 text-xs">{session.exercises.length}</Badge>
                 </TabsTrigger>
               ))}
-              <Button 
-                variant="outline" 
-                size="sm" 
-                onClick={addNewDay}
-                className="ml-2"
-              >
-                <Plus className="h-4 w-4" />
-                Dia
-              </Button>
+              <TabsTrigger value="add-days">
+                <Plus className="h-4 w-4 mr-1" />
+                Adicionar Dias
+              </TabsTrigger>
             </TabsList>
 
             <TabsContent value="plan" className="space-y-4">
@@ -525,6 +585,107 @@ const WorkoutPlanEditor = ({
                   </div>
                 )}
               </div>
+            </TabsContent>
+
+            <TabsContent value="add-days" className="space-y-4">
+              <div className="flex items-center justify-between">
+                <h3 className="text-lg font-semibold">Adicionar Novos Dias de Treino</h3>
+                <div className="text-sm text-muted-foreground">
+                  {getAvailableDays().length} dias disponíveis
+                </div>
+              </div>
+
+              {getAvailableDays().length === 0 ? (
+                <Card className="border-dashed">
+                  <CardContent className="text-center py-8">
+                    <Calendar className="h-12 w-12 text-muted-foreground mx-auto mb-4 opacity-50" />
+                    <p className="text-muted-foreground">Todos os dias da semana já foram adicionados</p>
+                    <p className="text-sm text-muted-foreground">
+                      Você já tem treinos para todos os 7 dias da semana
+                    </p>
+                  </CardContent>
+                </Card>
+              ) : (
+                <div className="space-y-4">
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="text-lg">Selecionar Dias</CardTitle>
+                      <p className="text-sm text-muted-foreground">
+                        Escolha os dias da semana que você deseja adicionar ao plano de treino
+                      </p>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        {getAvailableDays().map(day => (
+                          <div
+                            key={day.value}
+                            className={`
+                              flex items-center space-x-3 p-3 rounded-lg border-2 cursor-pointer transition-all
+                              ${selectedDaysToAdd.includes(day.value) 
+                                ? 'border-primary bg-primary/10' 
+                                : 'border-border hover:border-primary/50'
+                              }
+                            `}
+                            onClick={() => toggleDaySelection(day.value)}
+                          >
+                            <Checkbox
+                              id={`day-${day.value}`}
+                              checked={selectedDaysToAdd.includes(day.value)}
+                              onChange={() => toggleDaySelection(day.value)}
+                            />
+                            <Label 
+                              htmlFor={`day-${day.value}`} 
+                              className="flex-1 cursor-pointer font-medium"
+                            >
+                              {day.label}
+                            </Label>
+                          </div>
+                        ))}
+                      </div>
+
+                      {selectedDaysToAdd.length > 0 && (
+                        <div className="mt-4 p-3 bg-muted rounded-lg">
+                          <p className="text-sm font-medium mb-2">
+                            Dias selecionados ({selectedDaysToAdd.length}):
+                          </p>
+                          <div className="flex flex-wrap gap-1">
+                            {selectedDaysToAdd.map(dayValue => (
+                              <Badge key={dayValue} variant="secondary">
+                                {DAYS_OF_WEEK.find(d => d.value === dayValue)?.label}
+                              </Badge>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
+                      <div className="flex gap-2 mt-4">
+                        <Button
+                          variant="outline"
+                          onClick={() => setSelectedDaysToAdd(getAvailableDays().map(d => d.value))}
+                          disabled={getAvailableDays().length === 0}
+                        >
+                          Selecionar Todos
+                        </Button>
+                        <Button
+                          variant="outline"
+                          onClick={() => setSelectedDaysToAdd([])}
+                          disabled={selectedDaysToAdd.length === 0}
+                        >
+                          Limpar Seleção
+                        </Button>
+                        <Button
+                          onClick={addMultipleDays}
+                          disabled={selectedDaysToAdd.length === 0}
+                          className="ml-auto"
+                        >
+                          <Plus className="h-4 w-4 mr-2" />
+                          Adicionar {selectedDaysToAdd.length} Dia(s)
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
+              )}
             </TabsContent>
 
             {planData.sessions.map(session => (
