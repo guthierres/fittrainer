@@ -14,8 +14,10 @@ import {
   Dumbbell,
   Clock,
   Target,
-  User
+  User,
+  Settings
 } from "lucide-react";
+import EditWorkoutSession from "./EditWorkoutSession";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 
@@ -48,7 +50,8 @@ interface WorkoutExercise {
   reps_min?: number;
   reps_max?: number;
   weight_kg?: number;
-  rest_seconds: number;
+  rest_seconds?: number;
+  rest_minutes?: number;
   notes?: string;
   order_index: number;
   exercise?: {
@@ -75,6 +78,7 @@ const WorkoutManager = ({ trainerId }: { trainerId: string }) => {
   const [exercises, setExercises] = useState<Exercise[]>([]);
   const [selectedWorkout, setSelectedWorkout] = useState<WorkoutPlan | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [editingSession, setEditingSession] = useState<any>(null);
   const [formData, setFormData] = useState({
     name: "",
     description: "",
@@ -109,7 +113,18 @@ const WorkoutManager = ({ trainerId }: { trainerId: string }) => {
         .order("created_at", { ascending: false });
 
       if (!error && data) {
-        setWorkouts(data);
+        // Transform the data to include rest_minutes for display
+        const transformedData = data.map(workout => ({
+          ...workout,
+          workout_sessions: workout.workout_sessions?.map(session => ({
+            ...session,
+            workout_exercises: session.workout_exercises?.map(exercise => ({
+              ...exercise,
+              rest_minutes: Math.round((exercise.rest_seconds || 60) / 60)
+            }))
+          }))
+        }));
+        setWorkouts(transformedData);
       }
     } catch (error) {
       console.error("Error loading workouts:", error);
@@ -448,23 +463,39 @@ const WorkoutManager = ({ trainerId }: { trainerId: string }) => {
                             {session.description}
                           </p>
                         )}
-                        {session.workout_exercises && session.workout_exercises.length > 0 && (
-                          <div className="text-sm">
-                            <strong>Exercícios ({session.workout_exercises.length}):</strong>
-                            <ul className="list-disc list-inside ml-2">
-                              {session.workout_exercises.slice(0, 3).map((exercise) => (
-                                <li key={exercise.id}>
-                                  {exercise.exercise?.name} - {exercise.sets} séries
-                                </li>
-                              ))}
-                              {session.workout_exercises.length > 3 && (
-                                <li className="text-muted-foreground">
-                                  ... e mais {session.workout_exercises.length - 3} exercícios
-                                </li>
-                              )}
-                            </ul>
-                          </div>
-                        )}
+                        <div className="flex items-center justify-between">
+                          {session.workout_exercises && session.workout_exercises.length > 0 && (
+                            <div className="text-sm flex-1">
+                              <strong>Exercícios ({session.workout_exercises.length}):</strong>
+                              <ul className="list-disc list-inside ml-2">
+                                {session.workout_exercises.slice(0, 3).map((exercise) => (
+                                  <li key={exercise.id}>
+                                    {exercise.exercise?.name} - {exercise.sets} séries
+                                  </li>
+                                ))}
+                                {session.workout_exercises.length > 3 && (
+                                  <li className="text-muted-foreground">
+                                    ... e mais {session.workout_exercises.length - 3} exercícios
+                                  </li>
+                                )}
+                              </ul>
+                            </div>
+                          )}
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setEditingSession({
+                              id: session.id,
+                              name: session.name,
+                              day_of_week: session.day_of_week,
+                              workout_plan_id: workout.id,
+                              exercises: []
+                            })}
+                          >
+                            <Settings className="h-4 w-4 mr-1" />
+                            Editar
+                          </Button>
+                        </div>
                       </div>
                     ))}
                   </div>
@@ -484,6 +515,19 @@ const WorkoutManager = ({ trainerId }: { trainerId: string }) => {
             </p>
           </CardContent>
         </Card>
+      )}
+
+      {/* Edit Session Dialog */}
+      {editingSession && (
+        <EditWorkoutSession
+          session={editingSession}
+          isOpen={!!editingSession}
+          onClose={() => setEditingSession(null)}
+          onSuccess={() => {
+            setEditingSession(null);
+            loadWorkouts();
+          }}
+        />
       )}
     </div>
   );

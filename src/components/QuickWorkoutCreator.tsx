@@ -28,8 +28,7 @@ interface WorkoutExercise {
   sets: number;
   reps_min: number;
   reps_max: number;
-  weight_kg: number;
-  rest_seconds: number;
+  rest_minutes: number;
   order_index: number;
 }
 
@@ -141,8 +140,7 @@ const QuickWorkoutCreator = ({ studentId, studentName, trainerId, onClose, onSuc
       sets: 3,
       reps_min: 8,
       reps_max: 12,
-      weight_kg: 0,
-      rest_seconds: 60,
+      rest_minutes: 1,
       order_index: 0,
     };
 
@@ -238,8 +236,7 @@ const QuickWorkoutCreator = ({ studentId, studentName, trainerId, onClose, onSuc
           sets: ex.sets,
           reps_min: ex.reps_min,
           reps_max: ex.reps_max,
-          weight_kg: ex.weight_kg,
-          rest_seconds: ex.rest_seconds,
+          rest_seconds: ex.rest_minutes * 60,
           order_index: ex.order_index,
         }));
 
@@ -474,12 +471,12 @@ const QuickWorkoutCreator = ({ studentId, studentName, trainerId, onClose, onSuc
                             </div>
                           </div>
                           <div>
-                            <Label className="text-xs">Peso (kg)</Label>
+                            <Label className="text-xs">Descanso (min)</Label>
                             <Input
                               type="number"
                               step="0.5"
-                              value={exercise.weight_kg}
-                              onChange={(e) => updateExerciseInSession(sessionIndex, idx, 'weight_kg', parseFloat(e.target.value) || 0)}
+                              value={exercise.rest_minutes}
+                              onChange={(e) => updateExerciseInSession(sessionIndex, idx, 'rest_minutes', parseFloat(e.target.value) || 0)}
                               min="0"
                             />
                           </div>
