@@ -11,7 +11,12 @@ import {
   Target,
   User,
   Download,
-  Utensils
+  Utensils,
+  ArrowLeft,
+  Printer,
+  Calendar,
+  TrendingUp,
+  Dumbbell
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -259,13 +264,136 @@ Link do aluno: ${window.location.origin}/student/${token}
 Gerado em: ${new Date().toLocaleString('pt-BR')}
 `;
 
-    const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
+    const blob = new Blob([content], { type: 'text/plain;charset=utf-utf' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
     a.download = `dieta-${student.name}-${new Date().toLocaleDateString('pt-BR')}.txt`;
     a.click();
     URL.revokeObjectURL(url);
+  };
+
+  const printThermalDiet = () => {
+    if (!dietPlan || !student) return;
+
+    const totalCalories = dietPlan.meals.reduce((total, meal) => 
+      total + meal.meal_foods.reduce((mealTotal, food) => 
+        mealTotal + (food.calories || 0), 0), 0);
+
+    const printContent = `
+<html>
+<head>
+  <style>
+    @media print {
+      @page { 
+        margin: 0; 
+        size: 80mm auto; 
+      }
+      body { 
+        width: 80mm; 
+        margin: 0; 
+        padding: 2mm;
+        font-family: 'Courier New', monospace; 
+        font-size: 10px;
+        line-height: 1.2;
+      }
+      .center { text-align: center; }
+      .bold { font-weight: bold; }
+      .separator { 
+        border-top: 1px dashed #000; 
+        margin: 2mm 0; 
+      }
+      .small { font-size: 8px; }
+      .meal { margin: 2mm 0; }
+      .food-item { margin: 1mm 0 1mm 3mm; }
+    }
+  </style>
+</head>
+<body>
+  <div class="center bold">
+    ========================================<br>
+    COMPROVANTE DE DIETA<br>
+    ========================================
+  </div>
+  
+  <div class="separator"></div>
+  
+  <div class="bold">Personal Trainer:</div>
+  <div>${dietPlan.personal_trainer.name}</div>
+  ${dietPlan.personal_trainer.cref ? `<div class="small">CREF: ${dietPlan.personal_trainer.cref}</div>` : ''}
+  
+  <div class="separator"></div>
+  
+  <div class="bold">Aluno:</div>
+  <div>${student.name}</div>
+  <div class="small">ID: ${student.id}</div>
+  
+  <div class="separator"></div>
+  
+  <div class="bold">Plano Alimentar:</div>
+  <div>${dietPlan.name}</div>
+  <div class="small">Data: ${new Date().toLocaleDateString('pt-BR')}</div>
+  
+  <div class="separator"></div>
+  
+  <div class="bold">OBJETIVOS NUTRICIONAIS:</div>
+  ${dietPlan.daily_calories ? `<div>Calorias: ${dietPlan.daily_calories} kcal</div>` : ''}
+  ${dietPlan.daily_protein ? `<div>Proteínas: ${dietPlan.daily_protein}g</div>` : ''}
+  ${dietPlan.daily_carbs ? `<div>Carboidratos: ${dietPlan.daily_carbs}g</div>` : ''}
+  ${dietPlan.daily_fat ? `<div>Gorduras: ${dietPlan.daily_fat}g</div>` : ''}
+  
+  <div class="separator"></div>
+  
+  <div class="bold">REFEIÇÕES:</div>
+  ${dietPlan.meals.map((meal, index) => `
+    <div class="meal">
+      <div class="bold">${index + 1}. ${meal.name}</div>
+      ${meal.time_of_day ? `<div class="small">Horário: ${meal.time_of_day}</div>` : ''}
+      <div class="small">Status: ${meal.isCompleted ? '✅ CONSUMIDA' : '⏳ PENDENTE'}</div>
+      
+      <div style="margin-top: 1mm;">
+        ${meal.meal_foods.map(food => `
+          <div class="food-item">
+            <div class="bold">${food.food_name}</div>
+            <div class="small">Qtd: ${food.quantity}${food.unit}</div>
+            ${food.calories ? `<div class="small">Cal: ${food.calories} kcal</div>` : ''}
+            ${food.protein ? `<div class="small">Prot: ${food.protein}g</div>` : ''}
+            ${food.carbs ? `<div class="small">Carb: ${food.carbs}g</div>` : ''}
+            ${food.fat ? `<div class="small">Gord: ${food.fat}g</div>` : ''}
+            ${food.notes ? `<div class="small">Obs: ${food.notes}</div>` : ''}
+          </div>
+        `).join('')}
+      </div>
+    </div>
+  `).join('')}
+  
+  <div class="separator"></div>
+  
+  <div class="bold center">Total do Dia: ${totalCalories} kcal</div>
+  
+  <div class="separator"></div>
+  
+  <div class="center small">
+    Sistema: FitTrainer-Pro<br>
+    ${new Date().toLocaleString('pt-BR')}
+  </div>
+  
+  <script>
+    window.onload = function() {
+      window.print();
+      window.onafterprint = function() {
+        window.close();
+      }
+    }
+  </script>
+</body>
+</html>`;
+
+    const printWindow = window.open('', '_blank');
+    if (printWindow) {
+      printWindow.document.write(printContent);
+      printWindow.document.close();
+    }
   };
 
   if (isLoading) {
@@ -281,12 +409,35 @@ Gerado em: ${new Date().toLocaleString('pt-BR')}
 
   if (!student || !dietPlan) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <Card className="max-w-md">
-          <CardContent className="text-center p-6">
-            <p className="text-muted-foreground">
-              Nenhuma dieta encontrada ou link inválido.
-            </p>
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background to-muted/30">
+        <Card className="max-w-md mx-4 shadow-lg">
+          <CardContent className="text-center p-8 space-y-4">
+            <div className="w-16 h-16 mx-auto bg-muted rounded-full flex items-center justify-center">
+              <Apple className="h-8 w-8 text-muted-foreground" />
+            </div>
+            <div className="space-y-2">
+              <h3 className="text-lg font-semibold">Dieta não encontrada</h3>
+              <p className="text-muted-foreground text-sm">
+                Nenhuma dieta ativa foi encontrada para este link ou o link pode estar inválido.
+              </p>
+            </div>
+            <div className="flex flex-col gap-2 pt-4">
+              <Button 
+                onClick={() => window.history.back()}
+                variant="default"
+                className="w-full"
+              >
+                <ArrowLeft className="h-4 w-4 mr-2" />
+                Voltar
+              </Button>
+              <Button 
+                onClick={() => window.location.href = '/'}
+                variant="outline"
+                className="w-full"
+              >
+                Ir para Início
+              </Button>
+            </div>
           </CardContent>
         </Card>
       </div>
@@ -300,36 +451,53 @@ Gerado em: ${new Date().toLocaleString('pt-BR')}
   const completedMeals = dietPlan.meals.filter(meal => meal.isCompleted).length;
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-gradient-to-br from-background to-muted/30">
       {/* Header */}
-      <header className="border-b bg-card">
+      <header className="border-b bg-card/80 backdrop-blur-sm sticky top-0 z-50 shadow-sm">
         <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
             <div className="flex items-center gap-3">
-              <Apple className="h-8 w-8 text-success" />
+              <div className="p-2 bg-success/10 rounded-full">
+                <Apple className="h-6 w-6 text-success" />
+              </div>
               <div>
-                <h1 className="text-2xl font-bold text-primary">FitTrainer-Pro</h1>
+                <h1 className="text-xl lg:text-2xl font-bold text-primary">FitTrainer-Pro</h1>
                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
                   <User className="h-4 w-4" />
                   {student.name} - Plano Alimentar
+                  <Calendar className="h-4 w-4 ml-2" />
+                  {new Date().toLocaleDateString('pt-BR')}
                 </div>
               </div>
             </div>
-            <Button onClick={exportDiet} variant="outline" size="sm">
-              <Download className="h-4 w-4 mr-2" />
-              Exportar
-            </Button>
-            <div className="flex gap-2">
+            
+            <div className="flex flex-wrap gap-2 w-full lg:w-auto">
               <Button 
                 onClick={() => window.location.href = `/student/${token}`}
                 variant="secondary" 
                 size="sm"
+                className="flex-1 lg:flex-none"
               >
+                <Dumbbell className="h-4 w-4 mr-2" />
                 Ver Treino
               </Button>
-              <Button onClick={exportDiet} variant="outline" size="sm">
+              <Button 
+                onClick={exportDiet} 
+                variant="outline" 
+                size="sm"
+                className="flex-1 lg:flex-none"
+              >
                 <Download className="h-4 w-4 mr-2" />
-                Exportar Dieta
+                Exportar
+              </Button>
+              <Button 
+                onClick={printThermalDiet} 
+                variant="default" 
+                size="sm"
+                className="flex-1 lg:flex-none bg-primary hover:bg-primary/90"
+              >
+                <Printer className="h-4 w-4 mr-2" />
+                Imprimir
               </Button>
             </div>
           </div>
@@ -385,16 +553,34 @@ Gerado em: ${new Date().toLocaleString('pt-BR')}
             </div>
 
             {/* Progress Summary */}
-            <div className="flex items-center gap-4 p-4 bg-muted/30 rounded-lg">
-              <div>
-                <p className="text-sm text-muted-foreground">Progresso Hoje</p>
-                <p className="font-semibold">
-                  {completedMeals} de {dietPlan.meals.length} refeições
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-4 bg-gradient-to-r from-primary/5 to-success/5 rounded-lg border border-primary/10">
+              <div className="text-center">
+                <div className="flex items-center justify-center gap-2 mb-1">
+                  <TrendingUp className="h-4 w-4 text-success" />
+                  <p className="text-sm text-muted-foreground">Progresso Hoje</p>
+                </div>
+                <p className="font-bold text-lg text-success">
+                  {completedMeals} / {dietPlan.meals.length}
                 </p>
+                <p className="text-xs text-muted-foreground">refeições consumidas</p>
               </div>
-              <div>
-                <p className="text-sm text-muted-foreground">Total Calculado</p>
-                <p className="font-semibold">{totalDayCalories} kcal</p>
+              <div className="text-center">
+                <div className="flex items-center justify-center gap-2 mb-1">
+                  <Target className="h-4 w-4 text-primary" />
+                  <p className="text-sm text-muted-foreground">Calorias do Dia</p>
+                </div>
+                <p className="font-bold text-lg text-primary">{totalDayCalories}</p>
+                <p className="text-xs text-muted-foreground">kcal calculadas</p>
+              </div>
+              <div className="text-center">
+                <div className="flex items-center justify-center gap-2 mb-1">
+                  <CheckCircle className="h-4 w-4 text-secondary" />
+                  <p className="text-sm text-muted-foreground">Taxa de Sucesso</p>
+                </div>
+                <p className="font-bold text-lg text-secondary">
+                  {Math.round((completedMeals / dietPlan.meals.length) * 100)}%
+                </p>
+                <p className="text-xs text-muted-foreground">concluído hoje</p>
               </div>
             </div>
           </CardContent>

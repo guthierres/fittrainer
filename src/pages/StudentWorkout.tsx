@@ -10,7 +10,12 @@ import {
   Clock,
   Target,
   User,
-  Download
+  Download,
+  ArrowLeft,
+  Printer,
+  Calendar,
+  TrendingUp,
+  Apple
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -266,6 +271,117 @@ Gerado em: ${new Date().toLocaleString('pt-BR')}
     URL.revokeObjectURL(url);
   };
 
+  const printThermalWorkout = () => {
+    if (!workoutPlan || !student) return;
+
+    const currentSession = workoutPlan.workout_sessions.find(
+      s => s.day_of_week === selectedDay
+    );
+
+    if (!currentSession) return;
+
+    const printContent = `
+<html>
+<head>
+  <style>
+    @media print {
+      @page { 
+        margin: 0; 
+        size: 80mm auto; 
+      }
+      body { 
+        width: 80mm; 
+        margin: 0; 
+        padding: 2mm;
+        font-family: 'Courier New', monospace; 
+        font-size: 10px;
+        line-height: 1.2;
+      }
+      .center { text-align: center; }
+      .bold { font-weight: bold; }
+      .separator { 
+        border-top: 1px dashed #000; 
+        margin: 2mm 0; 
+      }
+      .small { font-size: 8px; }
+      .exercise { margin: 2mm 0; }
+      .exercise-details { margin: 1mm 0 1mm 3mm; }
+    }
+  </style>
+</head>
+<body>
+  <div class="center bold">
+    ========================================<br>
+    COMPROVANTE DE TREINO<br>
+    ========================================
+  </div>
+  
+  <div class="separator"></div>
+  
+  <div class="bold">Personal Trainer:</div>
+  <div>${workoutPlan.personal_trainer.name}</div>
+  ${workoutPlan.personal_trainer.cref ? `<div class="small">CREF: ${workoutPlan.personal_trainer.cref}</div>` : ''}
+  
+  <div class="separator"></div>
+  
+  <div class="bold">Aluno:</div>
+  <div>${student.name}</div>
+  <div class="small">ID: ${student.id}</div>
+  
+  <div class="separator"></div>
+  
+  <div class="bold">Treino:</div>
+  <div>${currentSession.name}</div>
+  <div class="small">Dia: ${daysOfWeek[selectedDay]}</div>
+  <div class="small">Data: ${new Date().toLocaleDateString('pt-BR')}</div>
+  
+  <div class="separator"></div>
+  
+  <div class="bold">EXERCÍCIOS:</div>
+  ${currentSession.workout_exercises.map((exercise, index) => `
+    <div class="exercise">
+      <div class="bold">${index + 1}. ${exercise.exercise.name}</div>
+      <div class="small">Cat: ${exercise.exercise.category.emoji} ${exercise.exercise.category.name}</div>
+      
+      <div class="exercise-details">
+        <div>Séries: ${exercise.sets}</div>
+        ${exercise.reps_min && exercise.reps_max 
+          ? `<div>Reps: ${exercise.reps_min}-${exercise.reps_max}</div>`
+          : exercise.reps_min ? `<div>Reps: ${exercise.reps_min}</div>` : ''
+        }
+        ${exercise.weight_kg ? `<div>Peso: ${exercise.weight_kg}kg</div>` : ''}
+        ${exercise.rest_seconds ? `<div>Descanso: ${exercise.rest_seconds}s</div>` : ''}
+        <div class="small">Status: ${exercise.isCompleted ? '✅ FEITO' : '⏳ PENDENTE'}</div>
+        ${exercise.notes ? `<div class="small">Obs: ${exercise.notes}</div>` : ''}
+      </div>
+    </div>
+  `).join('')}
+  
+  <div class="separator"></div>
+  
+  <div class="center small">
+    Sistema: FitTrainer-Pro<br>
+    ${new Date().toLocaleString('pt-BR')}
+  </div>
+  
+  <script>
+    window.onload = function() {
+      window.print();
+      window.onafterprint = function() {
+        window.close();
+      }
+    }
+  </script>
+</body>
+</html>`;
+
+    const printWindow = window.open('', '_blank');
+    if (printWindow) {
+      printWindow.document.write(printContent);
+      printWindow.document.close();
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -279,12 +395,35 @@ Gerado em: ${new Date().toLocaleString('pt-BR')}
 
   if (!student || !workoutPlan) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <Card className="max-w-md">
-          <CardContent className="text-center p-6">
-            <p className="text-muted-foreground">
-              Nenhum treino encontrado ou link inválido.
-            </p>
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background to-muted/30">
+        <Card className="max-w-md mx-4 shadow-lg">
+          <CardContent className="text-center p-8 space-y-4">
+            <div className="w-16 h-16 mx-auto bg-muted rounded-full flex items-center justify-center">
+              <Dumbbell className="h-8 w-8 text-muted-foreground" />
+            </div>
+            <div className="space-y-2">
+              <h3 className="text-lg font-semibold">Treino não encontrado</h3>
+              <p className="text-muted-foreground text-sm">
+                Nenhum treino ativo foi encontrado para este link ou o link pode estar inválido.
+              </p>
+            </div>
+            <div className="flex flex-col gap-2 pt-4">
+              <Button 
+                onClick={() => window.history.back()}
+                variant="default"
+                className="w-full"
+              >
+                <ArrowLeft className="h-4 w-4 mr-2" />
+                Voltar
+              </Button>
+              <Button 
+                onClick={() => window.location.href = '/'}
+                variant="outline"
+                className="w-full"
+              >
+                Ir para Início
+              </Button>
+            </div>
           </CardContent>
         </Card>
       </div>
@@ -296,34 +435,53 @@ Gerado em: ${new Date().toLocaleString('pt-BR')}
   );
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-gradient-to-br from-background to-muted/30">
       {/* Header */}
-      <header className="border-b bg-card sticky top-0 z-10">
+      <header className="border-b bg-card/80 backdrop-blur-sm sticky top-0 z-50 shadow-sm">
         <div className="container mx-auto px-4 py-3 sm:py-4">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex items-center gap-3">
-              <Dumbbell className="h-6 w-6 sm:h-8 sm:w-8 text-primary" />
+              <div className="p-2 bg-primary/10 rounded-full">
+                <Dumbbell className="h-6 w-6 sm:h-6 sm:w-6 text-primary" />
+              </div>
               <div>
                 <h1 className="text-xl sm:text-2xl font-bold text-primary">FitTrainer-Pro</h1>
                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
                   <User className="h-4 w-4" />
                   {student.name}
+                  <Calendar className="h-4 w-4 ml-2" />
+                  {new Date().toLocaleDateString('pt-BR')}
                 </div>
               </div>
             </div>
-            <div className="flex flex-col sm:flex-row gap-2">
+            <div className="flex flex-wrap gap-2 w-full sm:w-auto">
               <Button 
                 onClick={() => window.location.href = `/student/${token}/diet`}
                 variant="secondary" 
                 size="sm"
-                className="w-full sm:w-auto"
+                className="flex-1 sm:flex-none"
               >
+                <Apple className="h-4 w-4 mr-2" />
                 Ver Dieta
               </Button>
-              <Button onClick={exportWorkout} variant="outline" size="sm" className="w-full sm:w-auto">
+              <Button 
+                onClick={exportWorkout} 
+                variant="outline" 
+                size="sm" 
+                className="flex-1 sm:flex-none"
+              >
                 <Download className="h-4 w-4 mr-2" />
-                <span className="hidden sm:inline">Exportar Treino</span>
-                <span className="sm:hidden">Exportar</span>
+                <span className="hidden sm:inline">Exportar</span>
+                <span className="sm:hidden">Export</span>
+              </Button>
+              <Button 
+                onClick={printThermalWorkout} 
+                variant="default" 
+                size="sm"
+                className="flex-1 sm:flex-none bg-primary hover:bg-primary/90"
+              >
+                <Printer className="h-4 w-4 mr-2" />
+                Imprimir
               </Button>
             </div>
           </div>
@@ -495,11 +653,20 @@ Gerado em: ${new Date().toLocaleString('pt-BR')}
             </CardContent>
           </Card>
         ) : (
-          <Card>
-            <CardContent className="text-center py-8">
-              <p className="text-muted-foreground">
-                Nenhum treino programado para {daysOfWeek[selectedDay]}.
-              </p>
+          <Card className="bg-gradient-to-br from-muted/30 to-muted/10 border-dashed">
+            <CardContent className="text-center py-12 space-y-4">
+              <div className="w-16 h-16 mx-auto bg-muted/50 rounded-full flex items-center justify-center">
+                <Dumbbell className="h-8 w-8 text-muted-foreground" />
+              </div>
+              <div className="space-y-2">
+                <h3 className="text-lg font-semibold">Nenhum treino hoje</h3>
+                <p className="text-muted-foreground">
+                  Não há treino programado para {daysOfWeek[selectedDay]}.
+                </p>
+                <p className="text-sm text-muted-foreground">
+                  Selecione outro dia da semana ou entre em contato com seu personal trainer.
+                </p>
+              </div>
             </CardContent>
           </Card>
         )}
