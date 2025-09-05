@@ -18,11 +18,13 @@ import {
   UserX,
   Search,
   Download,
-  UserPlus
+  UserPlus,
+  Edit
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import CreatePersonalTrainer from "@/components/CreatePersonalTrainer";
+import EditPersonalTrainer from "@/components/EditPersonalTrainer";
 import PersonalTrainerTestLogin from "@/components/PersonalTrainerTestLogin";
 
 interface PersonalTrainer {
@@ -152,6 +154,8 @@ const SuperAdmin = () => {
   const [trainers, setTrainers] = useState<PersonalTrainer[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [selectedTrainer, setSelectedTrainer] = useState<PersonalTrainer | null>(null);
   const [stats, setStats] = useState({
     totalTrainers: 0,
     activeTrainers: 0,
@@ -285,6 +289,18 @@ const SuperAdmin = () => {
     setIsCreateDialogOpen(false);
     loadTrainers();
     loadStats();
+  };
+
+  const handleEditSuccess = () => {
+    setIsEditDialogOpen(false);
+    setSelectedTrainer(null);
+    loadTrainers();
+    loadStats();
+  };
+
+  const openEditDialog = (trainer: PersonalTrainer) => {
+    setSelectedTrainer(trainer);
+    setIsEditDialogOpen(true);
   };
 
   const handleLogout = () => {
@@ -440,6 +456,14 @@ const SuperAdmin = () => {
                       </div>
                       
                       <div className="flex items-center gap-4">
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          onClick={() => openEditDialog(trainer)}
+                        >
+                          <Edit className="h-4 w-4 mr-2" />
+                          Editar
+                        </Button>
                         {trainer.active ? (
                           <UserX className="h-5 w-5 text-destructive" />
                         ) : (
@@ -486,6 +510,22 @@ const SuperAdmin = () => {
               onClose={() => setIsCreateDialogOpen(false)}
               onSuccess={handleCreateSuccess}
             />
+          </DialogContent>
+        </Dialog>
+
+        {/* Edit Personal Trainer Dialog */}
+        <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+          <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+            {selectedTrainer && (
+              <EditPersonalTrainer
+                trainer={selectedTrainer}
+                onClose={() => {
+                  setIsEditDialogOpen(false);
+                  setSelectedTrainer(null);
+                }}
+                onSuccess={handleEditSuccess}
+              />
+            )}
           </DialogContent>
         </Dialog>
       </div>
