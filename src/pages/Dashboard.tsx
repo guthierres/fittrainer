@@ -18,6 +18,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import StudentList from "@/components/StudentList";
 import CreateStudent from "@/components/CreateStudent";
+import StudentTestCreator from "@/components/StudentTestCreator";
 import WorkoutManager from "@/components/WorkoutManager";
 import DietManager from "@/components/DietManager";
 import ReportsManager from "@/components/ReportsManager";
@@ -49,6 +50,7 @@ const Dashboard = () => {
     completedExercisesToday: 0
   });
   const [showCreateStudent, setShowCreateStudent] = useState(false);
+  const [showTestCreator, setShowTestCreator] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -199,10 +201,15 @@ const Dashboard = () => {
           <TabsContent value="students" className="space-y-4">
             <div className="flex justify-between items-center">
               <h2 className="text-xl font-semibold">Gerenciar Alunos</h2>
-              <Button onClick={() => setShowCreateStudent(true)}>
-                <Plus className="h-4 w-4 mr-2" />
-                Novo Aluno
-              </Button>
+              <div className="flex gap-2">
+                <Button onClick={() => setShowTestCreator(true)} variant="outline">
+                  Teste Debug
+                </Button>
+                <Button onClick={() => setShowCreateStudent(true)}>
+                  <Plus className="h-4 w-4 mr-2" />
+                  Novo Aluno
+                </Button>
+              </div>
             </div>
             
             {showCreateStudent ? (
@@ -211,6 +218,15 @@ const Dashboard = () => {
                 onClose={() => setShowCreateStudent(false)}
                 onSuccess={() => {
                   setShowCreateStudent(false);
+                  loadStats(trainer.id);
+                }}
+              />
+            ) : showTestCreator ? (
+              <StudentTestCreator
+                trainerId={trainer.id}
+                onClose={() => setShowTestCreator(false)}
+                onSuccess={() => {
+                  setShowTestCreator(false);
                   loadStats(trainer.id);
                 }}
               />

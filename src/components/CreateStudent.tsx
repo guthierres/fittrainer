@@ -63,11 +63,6 @@ const CreateStudent = ({ trainerId, onClose, onSuccess }: CreateStudentProps) =>
     return value;
   };
 
-  const generateUniqueToken = () => {
-    return Math.random().toString(36).substring(2) + 
-           Math.random().toString(36).substring(2);
-  };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
@@ -76,38 +71,57 @@ const CreateStudent = ({ trainerId, onClose, onSuccess }: CreateStudentProps) =>
       // Convert DD/MM/YYYY to YYYY-MM-DD if birth_date is provided
       let dbBirthDate = null;
       if (formData.birth_date) {
-        const [day, month, year] = formData.birth_date.split("/");
-        if (day && month && year) {
-          dbBirthDate = `${year}-${month.padStart(2, "0")}-${day.padStart(2, "0")}`;
+        // Check if it's already in YYYY-MM-DD format (from date input)
+        if (formData.birth_date.includes('-')) {
+          dbBirthDate = formData.birth_date;
+        } else if (formData.birth_date.includes('/')) {
+          // Convert DD/MM/YYYY to YYYY-MM-DD
+          const [day, month, year] = formData.birth_date.split("/");
+          if (day && month && year) {
+            dbBirthDate = `${year}-${month.padStart(2, "0")}-${day.padStart(2, "0")}`;
+          }
         }
       }
 
+      // Generate a more robust unique token
+      const generateUniqueToken = () => {
+        const timestamp = Date.now().toString(36);
+        const randomStr = Math.random().toString(36).substring(2);
+        return `${timestamp}-${randomStr}`;
+      };
+
       const studentData = {
         personal_trainer_id: trainerId,
-        name: formData.name,
-        email: formData.email || null,
-        phone: formData.phone || null,
+        name: formData.name.trim(),
+        email: formData.email ? formData.email.trim() : null,
+        phone: formData.phone ? formData.phone.trim() : null,
         birth_date: dbBirthDate,
         weight: formData.weight ? parseFloat(formData.weight) : null,
         height: formData.height ? parseFloat(formData.height) : null,
         goals: goals.length > 0 ? goals : null,
-        medical_restrictions: formData.medical_restrictions || null,
+        medical_restrictions: formData.medical_restrictions ? formData.medical_restrictions.trim() : null,
         unique_link_token: generateUniqueToken(),
         active: true,
       };
 
-      const { error } = await supabase
+      console.log("Attempting to create student with data:", studentData);
+
+      const { data, error } = await supabase
         .from("students")
-        .insert(studentData);
+        .insert(studentData)
+        .select();
 
       if (error) {
+        console.error("Database error:", error);
         toast({
           title: "Erro",
-          description: "Não foi possível cadastrar o aluno. Tente novamente.",
+          description: `Não foi possível cadastrar o aluno: ${error.message}`,
           variant: "destructive",
         });
         return;
       }
+
+      console.log("Student created successfully:", data);
 
       toast({
         title: "Sucesso!",
@@ -182,6 +196,7 @@ const CreateStudent = ({ trainerId, onClose, onSuccess }: CreateStudentProps) =>
                 type="date"
                 value={formData.birth_date}
                 onChange={(e) => handleInputChange("birth_date", e.target.value)}
+                max={new Date().toISOString().split('T')[0]} // Prevent future dates
               />
             </div>
           </div>
@@ -194,6 +209,8 @@ const CreateStudent = ({ trainerId, onClose, onSuccess }: CreateStudentProps) =>
                 id="weight"
                 type="number"
                 step="0.1"
+                min="1"
+                max="300"
                 value={formData.weight}
                 onChange={(e) => handleInputChange("weight", e.target.value)}
                 placeholder="70.5"
@@ -206,6 +223,8 @@ const CreateStudent = ({ trainerId, onClose, onSuccess }: CreateStudentProps) =>
                 id="height"
                 type="number"
                 step="0.01"
+                min="0.5"
+                max="2.5"
                 value={formData.height}
                 onChange={(e) => handleInputChange("height", e.target.value)}
                 placeholder="1.75"
