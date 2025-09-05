@@ -465,13 +465,14 @@ const WorkoutPlanEditor = ({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-      <Card className="w-full max-w-6xl max-h-[90vh] overflow-hidden">
-        <CardHeader>
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-2 sm:p-4">
+      <Card className="w-full h-full sm:h-auto sm:max-w-7xl sm:max-h-[95vh] overflow-hidden flex flex-col">
+        <CardHeader className="flex-shrink-0 pb-3">
           <div className="flex items-center justify-between">
-            <CardTitle className="flex items-center gap-2">
+            <CardTitle className="flex items-center gap-2 text-lg sm:text-xl">
               <Dumbbell className="h-5 w-5" />
-              Editar Plano de Treino
+              <span className="hidden sm:inline">Editar Plano de Treino</span>
+              <span className="sm:hidden">Editar Treino</span>
             </CardTitle>
             <Button variant="outline" size="sm" onClick={onClose}>
               <X className="h-4 w-4" />
@@ -479,36 +480,52 @@ const WorkoutPlanEditor = ({
           </div>
         </CardHeader>
 
-        <CardContent className="overflow-y-auto max-h-[calc(90vh-120px)]">
-          <Tabs value={activeTab} onValueChange={setActiveTab}>
-            <TabsList className="flex w-full overflow-x-auto">
-              <TabsTrigger value="plan">Plano</TabsTrigger>
+        <CardContent className="flex-1 overflow-hidden p-3 sm:p-6">
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="h-full flex flex-col">
+            <TabsList className="flex-shrink-0 w-full overflow-x-auto scrollbar-hide mb-4 grid-flow-col auto-cols-max">
+              <TabsTrigger value="plan" className="text-xs sm:text-sm px-2 sm:px-4">
+                <span className="hidden sm:inline">Plano</span>
+                <span className="sm:hidden">📋</span>
+              </TabsTrigger>
               {planData.sessions.map(session => (
-                <TabsTrigger key={session.day_of_week} value={`session-${session.day_of_week}`}>
-                  {DAYS_OF_WEEK.find(d => d.value === session.day_of_week)?.label.slice(0, 3)}
-                  <Badge variant="secondary" className="ml-1 text-xs">{session.exercises.length}</Badge>
+                <TabsTrigger 
+                  key={session.day_of_week} 
+                  value={`session-${session.day_of_week}`}
+                  className="text-xs sm:text-sm px-2 sm:px-4 flex items-center gap-1"
+                >
+                  <span className="hidden sm:inline">
+                    {DAYS_OF_WEEK.find(d => d.value === session.day_of_week)?.label.slice(0, 3)}
+                  </span>
+                  <span className="sm:hidden">
+                    {DAYS_OF_WEEK.find(d => d.value === session.day_of_week)?.label.slice(0, 3)}
+                  </span>
+                  <Badge variant="secondary" className="ml-1 text-xs min-w-[1.5rem] h-4 flex items-center justify-center">
+                    {session.exercises.length}
+                  </Badge>
                 </TabsTrigger>
               ))}
-              <TabsTrigger value="add-days">
-                <Plus className="h-4 w-4 mr-1" />
-                Adicionar Dias
+              <TabsTrigger value="add-days" className="text-xs sm:text-sm px-2 sm:px-4">
+                <Plus className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
+                <span className="hidden sm:inline">Adicionar Dias</span>
+                <span className="sm:hidden">+</span>
               </TabsTrigger>
             </TabsList>
 
-            <TabsContent value="plan" className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <TabsContent value="plan" className="flex-1 overflow-y-auto space-y-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 lg:gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="name">Nome do Plano</Label>
+                  <Label htmlFor="name" className="text-sm font-medium">Nome do Plano</Label>
                   <Input
                     id="name"
                     value={planData.name}
                     onChange={(e) => setPlanData(prev => ({ ...prev, name: e.target.value }))}
                     placeholder="Ex: Treino Hipertrofia Iniciante"
+                    className="h-10"
                   />
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="frequency">Frequência Semanal</Label>
+                  <Label htmlFor="frequency" className="text-sm font-medium">Frequência Semanal</Label>
                   <Input
                     id="frequency"
                     type="number"
@@ -516,39 +533,51 @@ const WorkoutPlanEditor = ({
                     max="7"
                     value={planData.frequency_per_week}
                     onChange={(e) => setPlanData(prev => ({ ...prev, frequency_per_week: parseInt(e.target.value) || 1 }))}
+                    className="h-10"
                   />
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="duration">Duração (semanas)</Label>
+                  <Label htmlFor="duration" className="text-sm font-medium">Duração (semanas)</Label>
                   <Input
                     id="duration"
                     type="number"
                     min="1"
                     value={planData.duration_weeks}
                     onChange={(e) => setPlanData(prev => ({ ...prev, duration_weeks: parseInt(e.target.value) || 1 }))}
+                    className="h-10"
                   />
                 </div>
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="description">Descrição (opcional)</Label>
+                <Label htmlFor="description" className="text-sm font-medium">Descrição (opcional)</Label>
                 <Input
                   id="description"
                   value={planData.description || ""}
                   onChange={(e) => setPlanData(prev => ({ ...prev, description: e.target.value }))}
                   placeholder="Descrição do plano..."
+                  className="h-10"
                 />
               </div>
 
-              <div className="space-y-4">
-                <h3 className="text-lg font-semibold">Dias de Treino ({planData.sessions.length})</h3>
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-base sm:text-lg font-semibold">Dias de Treino ({planData.sessions.length})</h3>
+                  {planData.sessions.length < 7 && (
+                    <Button size="sm" onClick={addNewDay} className="text-xs">
+                      <Plus className="h-3 w-3 mr-1" />
+                      <span className="hidden sm:inline">Adicionar Dia</span>
+                      <span className="sm:hidden">+</span>
+                    </Button>
+                  )}
+                </div>
                 {planData.sessions.length === 0 ? (
                   <Card className="border-dashed">
-                    <CardContent className="text-center py-8">
-                      <Dumbbell className="h-12 w-12 text-muted-foreground mx-auto mb-4 opacity-50" />
-                      <p className="text-muted-foreground">Nenhum dia de treino adicionado</p>
-                      <Button onClick={addNewDay} className="mt-4">
+                    <CardContent className="text-center py-6">
+                      <Dumbbell className="h-8 w-8 sm:h-12 sm:w-12 text-muted-foreground mx-auto mb-3 opacity-50" />
+                      <p className="text-sm sm:text-base text-muted-foreground mb-3">Nenhum dia de treino adicionado</p>
+                      <Button onClick={addNewDay} size="sm">
                         <Plus className="h-4 w-4 mr-2" />
                         Adicionar Primeiro Dia
                       </Button>
@@ -557,10 +586,10 @@ const WorkoutPlanEditor = ({
                 ) : (
                   <div className="grid gap-2">
                     {planData.sessions.map(session => (
-                      <div key={session.day_of_week} className="flex items-center justify-between p-3 bg-muted rounded-lg">
-                        <div>
-                          <p className="font-medium">{session.name}</p>
-                          <p className="text-sm text-muted-foreground">
+                      <div key={session.day_of_week} className="flex flex-col sm:flex-row sm:items-center justify-between p-3 bg-muted rounded-lg gap-2">
+                        <div className="flex-1">
+                          <p className="font-medium text-sm sm:text-base">{session.name}</p>
+                          <p className="text-xs sm:text-sm text-muted-foreground">
                             {DAYS_OF_WEEK.find(d => d.value === session.day_of_week)?.label} • {session.exercises.length} exercícios
                           </p>
                         </div>
@@ -569,15 +598,19 @@ const WorkoutPlanEditor = ({
                             variant="outline"
                             size="sm"
                             onClick={() => setActiveTab(`session-${session.day_of_week}`)}
+                            className="flex-1 sm:flex-none text-xs"
                           >
-                            <Edit className="h-4 w-4" />
+                            <Edit className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
+                            <span className="sm:hidden">Editar</span>
                           </Button>
                           <Button
                             variant="outline"
                             size="sm"
                             onClick={() => removeSession(session.day_of_week)}
+                            className="flex-1 sm:flex-none text-xs"
                           >
-                            <Trash2 className="h-4 w-4" />
+                            <Trash2 className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
+                            <span className="sm:hidden">Remover</span>
                           </Button>
                         </div>
                       </div>
@@ -587,10 +620,10 @@ const WorkoutPlanEditor = ({
               </div>
             </TabsContent>
 
-            <TabsContent value="add-days" className="space-y-4">
-              <div className="flex items-center justify-between">
-                <h3 className="text-lg font-semibold">Adicionar Novos Dias de Treino</h3>
-                <div className="text-sm text-muted-foreground">
+            <TabsContent value="add-days" className="flex-1 overflow-y-auto space-y-4">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                <h3 className="text-base sm:text-lg font-semibold">Adicionar Novos Dias de Treino</h3>
+                <div className="text-xs sm:text-sm text-muted-foreground">
                   {getAvailableDays().length} dias disponíveis
                 </div>
               </div>
@@ -691,35 +724,38 @@ const WorkoutPlanEditor = ({
             </TabsContent>
 
             {planData.sessions.map(session => (
-              <TabsContent key={session.day_of_week} value={`session-${session.day_of_week}`} className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <h3 className="text-lg font-semibold">
+              <TabsContent key={session.day_of_week} value={`session-${session.day_of_week}`} className="flex-1 overflow-y-auto space-y-4">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                  <div className="flex-1">
+                    <h3 className="text-base sm:text-lg font-semibold">
                       {DAYS_OF_WEEK.find(d => d.value === session.day_of_week)?.label}
                     </h3>
-                    <p className="text-sm text-muted-foreground">{session.exercises.length} exercícios</p>
+                    <p className="text-xs sm:text-sm text-muted-foreground">{session.exercises.length} exercícios</p>
                   </div>
-                  <Input
-                    value={session.name}
-                    onChange={(e) => updateSession(session.day_of_week, { name: e.target.value })}
-                    className="w-auto"
-                  />
+                  <div className="w-full sm:w-auto sm:min-w-[200px]">
+                    <Input
+                      value={session.name}
+                      onChange={(e) => updateSession(session.day_of_week, { name: e.target.value })}
+                      placeholder="Nome do treino"
+                      className="h-9 text-sm"
+                    />
+                  </div>
                 </div>
 
                 {/* Add Exercise Section */}
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="text-lg">Adicionar Exercício</CardTitle>
+                <Card className="border">
+                  <CardHeader className="pb-3">
+                    <CardTitle className="text-base sm:text-lg">Adicionar Exercício</CardTitle>
                   </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 lg:gap-4">
+                  <CardContent className="space-y-3">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                       <div className="space-y-2">
-                        <Label>Categoria</Label>
+                        <Label className="text-sm font-medium">Categoria</Label>
                         <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-                          <SelectTrigger>
+                          <SelectTrigger className="h-9">
                             <SelectValue placeholder="Selecione a categoria" />
                           </SelectTrigger>
-                          <SelectContent>
+                          <SelectContent className="max-h-48">
                             {categories.map(category => (
                               <SelectItem key={category.id} value={category.id}>
                                 <span className="flex items-center gap-2">
@@ -733,12 +769,12 @@ const WorkoutPlanEditor = ({
                       
                       {selectedCategory && (
                         <div className="space-y-2">
-                          <Label>Exercício</Label>
+                          <Label className="text-sm font-medium">Exercício</Label>
                           <Select onValueChange={(value) => addExerciseToSession(session.day_of_week, value)}>
-                            <SelectTrigger>
+                            <SelectTrigger className="h-9">
                               <SelectValue placeholder="Escolher exercício" />
                             </SelectTrigger>
-                            <SelectContent>
+                            <SelectContent className="max-h-48">
                               {categoryExercises.map(exercise => (
                                 <SelectItem key={exercise.id} value={exercise.id}>
                                   {exercise.name}
@@ -828,22 +864,22 @@ const WorkoutPlanEditor = ({
                 )}
               </TabsContent>
             ))}
-          </Tabs>
+           </Tabs>
 
           {/* Action Buttons */}
-          <div className="flex flex-col sm:flex-row gap-2 pt-6 border-t">
-            <Button type="button" variant="outline" onClick={onClose} className="flex-1">
+          <div className="flex-shrink-0 flex flex-col sm:flex-row gap-2 pt-4 border-t bg-background">
+            <Button type="button" variant="outline" onClick={onClose} className="flex-1 h-10">
               Cancelar
             </Button>
             <Button 
               onClick={handleSave} 
-              className="flex-1" 
+              className="flex-1 h-10" 
               disabled={isLoading}
             >
               {isLoading ? "Salvando..." : (
                 <>
-                  <Save className="h-4 w-4 mr-2" />
-                  Salvar Plano
+                  <Save className="h-3 w-3 sm:h-4 sm:w-4 mr-2" />
+                  <span className="text-sm">Salvar Plano</span>
                 </>
               )}
             </Button>
