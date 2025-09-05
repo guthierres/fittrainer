@@ -116,6 +116,10 @@ const Dashboard = () => {
   };
 
   const handleLogout = () => {
+    // Clear all auth data
+    localStorage.removeItem('auth_user');
+    localStorage.removeItem('auth_session');
+    localStorage.removeItem('user_type');
     localStorage.removeItem("trainer");
     toast({
       title: "Logout realizado",

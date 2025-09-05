@@ -45,112 +45,9 @@ interface PersonalTrainer {
   };
 }
 
-const SuperAdminLogin = ({ onLogin }: { onLogin: () => void }) => {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
-  const { toast } = useToast();
-
-  const handleLogin = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsLoading(true);
-
-    try {
-      const { data, error } = await supabase
-        .from("super_admins")
-        .select("*")
-        .eq("email", email)
-        .single();
-
-      if (error || !data) {
-        toast({
-          title: "Erro no login",
-          description: "Email ou senha inválidos.",
-          variant: "destructive",
-        });
-        return;
-      }
-
-      // Simple password verification (in production, use proper hashing)
-      if (email === "guthierresc@hotmail.com" && password === "Gutim@2028") {
-        localStorage.setItem("superAdmin", JSON.stringify(data));
-        toast({
-          title: "Login realizado com sucesso!",
-          description: `Bem-vindo, ${data.name}!`,
-        });
-        onLogin();
-      } else {
-        toast({
-          title: "Erro no login",
-          description: "Email ou senha inválidos.",
-          variant: "destructive",
-        });
-      }
-    } catch (error) {
-      toast({
-        title: "Erro no login",
-        description: "Ocorreu um erro inesperado. Tente novamente.",
-        variant: "destructive",
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-destructive/10 to-warning/10 p-4">
-      <Card className="w-full max-w-md">
-        <CardHeader className="text-center">
-          <div className="flex justify-center mb-4">
-            <Shield className="h-12 w-12 text-destructive" />
-          </div>
-          <CardTitle className="text-2xl font-bold text-destructive">
-            Super Admin
-          </CardTitle>
-          <p className="text-muted-foreground">
-            Acesso administrativo do sistema
-          </p>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handleLogin} className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
-              <Input
-                id="email"
-                type="email"
-                placeholder="admin@example.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="password">Senha</Label>
-              <Input
-                id="password"
-                type="password"
-                placeholder="••••••••"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-              />
-            </div>
-            <Button
-              type="submit"
-              className="w-full"
-              disabled={isLoading || !email || !password}
-            >
-              {isLoading ? "Entrando..." : "Entrar"}
-            </Button>
-          </form>
-        </CardContent>
-      </Card>
-    </div>
-  );
-};
+// Remove SuperAdminLogin component - authentication now handled by AuthLogin
 
 const SuperAdmin = () => {
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [trainers, setTrainers] = useState<PersonalTrainer[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
@@ -311,10 +208,6 @@ const SuperAdmin = () => {
     });
     navigate("/");
   };
-
-  if (!isLoggedIn) {
-    return <SuperAdminLogin onLogin={() => setIsLoggedIn(true)} />;
-  }
 
   const filteredTrainers = trainers.filter(trainer =>
     trainer.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
