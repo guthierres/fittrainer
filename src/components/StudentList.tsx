@@ -12,7 +12,8 @@ import {
   ExternalLink,
   Dumbbell,
   Target,
-  Utensils
+  Utensils,
+  Trash2
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -83,6 +84,32 @@ const StudentList = ({ trainerId }: StudentListProps) => {
       title: "Link copiado!",
       description: "O link do aluno foi copiado para a área de transferência.",
     });
+  };
+
+  const deleteStudent = async (studentId: string, studentName: string) => {
+    if (!confirm(`Tem certeza que deseja excluir o aluno ${studentName}?`)) return;
+
+    try {
+      const { error } = await supabase
+        .from("students")
+        .update({ active: false })
+        .eq("id", studentId);
+
+      if (error) throw error;
+
+      toast({
+        title: "Aluno excluído!",
+        description: `${studentName} foi excluído com sucesso.`,
+      });
+
+      loadStudents();
+    } catch (error) {
+      toast({
+        title: "Erro",
+        description: "Não foi possível excluir o aluno.",
+        variant: "destructive",
+      });
+    }
   };
 
   const getStudentInitials = (name: string) => {
@@ -267,6 +294,16 @@ const StudentList = ({ trainerId }: StudentListProps) => {
                   Dietas
                 </Button>
               </div>
+              
+              <Button 
+                variant="destructive" 
+                size="sm"
+                className="w-full"
+                onClick={() => deleteStudent(student.id, student.name)}
+              >
+                <Trash2 className="h-4 w-4 mr-2" />
+                Excluir Aluno
+              </Button>
             </div>
           </CardContent>
         </Card>

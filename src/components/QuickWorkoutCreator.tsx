@@ -95,23 +95,19 @@ const QuickWorkoutCreator = ({ studentId, studentName, trainerId, onClose, onSuc
     }
   };
 
-  const addTrainingDay = () => {
-    // Find the first available day that's not already selected
-    const availableDay = DAYS_OF_WEEK.find(day => 
-      !sessions.some(session => session.day === day.value)
-    );
+  const addTrainingDay = (selectedDay: number) => {
+    const dayInfo = DAYS_OF_WEEK.find(d => d.value === selectedDay);
+    if (!dayInfo) return;
     
-    if (availableDay) {
-      const newSession: WorkoutSession = {
-        day: availableDay.value,
-        name: `Treino ${availableDay.label}`,
-        category_id: "",
-        category_name: "",
-        exercises: []
-      };
-      setSessions(prev => [...prev, newSession]);
-      setFormData(prev => ({ ...prev, frequency_per_week: sessions.length + 1 }));
-    }
+    const newSession: WorkoutSession = {
+      day: selectedDay,
+      name: `Treino ${dayInfo.label}`,
+      category_id: "",
+      category_name: "",
+      exercises: []
+    };
+    setSessions(prev => [...prev, newSession]);
+    setFormData(prev => ({ ...prev, frequency_per_week: sessions.length + 1 }));
   };
 
   const removeTrainingDay = (dayToRemove: number) => {
@@ -336,16 +332,20 @@ const QuickWorkoutCreator = ({ studentId, studentName, trainerId, onClose, onSuc
           <div className="space-y-3">
             <div className="flex items-center justify-between">
               <Label>Dias de Treino ({sessions.length} dia{sessions.length !== 1 ? 's' : ''})</Label>
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                onClick={addTrainingDay}
-                disabled={sessions.length >= 7}
-              >
-                <Plus className="h-4 w-4 mr-2" />
-                Adicionar Dia
-              </Button>
+              <Select onValueChange={(day) => addTrainingDay(parseInt(day))}>
+                <SelectTrigger className="w-48">
+                  <SelectValue placeholder="Selecionar dia" />
+                </SelectTrigger>
+                <SelectContent>
+                  {DAYS_OF_WEEK.filter(day => 
+                    !sessions.some(session => session.day === day.value)
+                  ).map(day => (
+                    <SelectItem key={day.value} value={day.value.toString()}>
+                      {day.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
             
             {sessions.length > 0 && (

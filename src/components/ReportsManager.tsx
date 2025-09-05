@@ -25,20 +25,25 @@ interface Student {
 }
 
 interface ReportData {
-  student_name: string;
-  student_email?: string;
-  student_phone?: string;
-  trainer_name: string;
-  trainer_cpf: string;
-  trainer_cref?: string;
-  workout_completions: number;
-  diet_completions: number;
-  total_exercises: number;
-  completed_exercises: number;
-  completion_rate: number;
-  period_start: string;
-  period_end: string;
-  report_date: string;
+  student: {
+    name: string;
+    email?: string;
+    phone?: string;
+  };
+  trainer: {
+    name: string;
+    cpf: string;
+    cref?: string;
+    phone?: string;
+  };
+  exercisesCompleted: number;
+  totalExercises: number;
+  mealsCompleted: number;
+  totalMeals: number;
+  completionRate: number;
+  startDate: string;
+  endDate: string;
+  reportDate: string;
 }
 
 const ReportsManager = ({ trainerId }: { trainerId: string }) => {
@@ -89,7 +94,7 @@ const ReportsManager = ({ trainerId }: { trainerId: string }) => {
       // Get trainer info
       const { data: trainerData } = await supabase
         .from("personal_trainers")
-        .select("name, cpf, cref")
+        .select("name, cpf, cref, phone")
         .eq("id", trainerId)
         .single();
 
@@ -166,20 +171,25 @@ const ReportsManager = ({ trainerId }: { trainerId: string }) => {
           (completedExercises / totalExercisesCount) * 100 : 0;
 
         reports.push({
-          student_name: student.name,
-          student_email: student.email,
-          student_phone: student.phone,
-          trainer_name: trainerData?.name || "",
-          trainer_cpf: trainerData?.cpf || "",
-          trainer_cref: trainerData?.cref,
-          workout_completions: completedExercises,
-          diet_completions: mealCompletions?.length || 0,
-          total_exercises: totalExercisesCount,
-          completed_exercises: completedExercises,
-          completion_rate: Math.round(completionRate * 100) / 100,
-          period_start: format(dateRange.from, "dd/MM/yyyy"),
-          period_end: format(dateRange.to, "dd/MM/yyyy"),
-          report_date: format(new Date(), "dd/MM/yyyy 'às' HH:mm")
+          student: {
+            name: student.name,
+            email: student.email,
+            phone: student.phone,
+          },
+          trainer: {
+            name: trainerData?.name || "",
+            cpf: trainerData?.cpf || "",
+            cref: trainerData?.cref,
+            phone: trainerData?.phone,
+          },
+          exercisesCompleted: completedExercises,
+          totalExercises: totalExercisesCount,
+          mealsCompleted: mealCompletions?.length || 0,
+          totalMeals: 0, // We could calculate this if needed
+          completionRate: Math.round(completionRate * 100) / 100,
+          startDate: format(dateRange.from, "dd/MM/yyyy"),
+          endDate: format(dateRange.to, "dd/MM/yyyy"),
+          reportDate: format(new Date(), "dd/MM/yyyy 'às' HH:mm")
         });
       }
 
@@ -203,81 +213,85 @@ const ReportsManager = ({ trainerId }: { trainerId: string }) => {
   };
 
   const exportToPDF = (report: ReportData) => {
-    // Create a detailed bank-like receipt format
-    const reportContent = `
-      ══════════════════════════════════════════════════════════════
-                          FITTRAINER-PRO
-                     COMPROVANTE DE DESEMPENHO
-      ══════════════════════════════════════════════════════════════
+    import('jspdf').then(({ jsPDF }) => {
+      const doc = new jsPDF({
+        unit: 'mm',
+        format: [80, 200] // Thermal printer format (80mm width)
+      });
+
+      // Configure font
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(8);
       
-      Data de Emissão: ${report.report_date}
-      Período do Relatório: ${report.period_start} à ${report.period_end}
+      let y = 10;
+      const lineHeight = 4;
+      const centerX = 40;
+
+      // Header
+      doc.setFontSize(10);
+      doc.text("COMPROVANTE DE ACOMPANHAMENTO", centerX, y, { align: "center" });
+      y += lineHeight * 2;
       
-      ──────────────────────────────────────────────────────────────
-                        DADOS DO PERSONAL TRAINER
-      ──────────────────────────────────────────────────────────────
-      Nome: ${report.trainer_name}
-      CPF: ${report.trainer_cpf}
-      ${report.trainer_cref ? `CREF: ${report.trainer_cref}` : ''}
-      
-      ──────────────────────────────────────────────────────────────
-                            DADOS DO ALUNO
-      ──────────────────────────────────────────────────────────────
-      Nome: ${report.student_name}
-      ${report.student_email ? `E-mail: ${report.student_email}` : ''}
-      ${report.student_phone ? `Telefone: ${report.student_phone}` : ''}
-      
-      ──────────────────────────────────────────────────────────────
-                        RESUMO DE ATIVIDADES
-      ──────────────────────────────────────────────────────────────
-      Exercícios Realizados: ${report.completed_exercises}
-      Total de Exercícios: ${report.total_exercises}
-      Taxa de Conclusão: ${report.completion_rate}%
-      
-      Treinos Completados: ${report.workout_completions}
-      Refeições Registradas: ${report.diet_completions}
-      
-      ──────────────────────────────────────────────────────────────
-                          ANÁLISE DE DESEMPENHO
-      ──────────────────────────────────────────────────────────────
-      ${report.completion_rate >= 80 ? 
-        "✓ EXCELENTE - Aluno demonstra alta dedicação e consistência" :
-        report.completion_rate >= 60 ?
-        "⚠ BOM - Aluno apresenta bom engajamento, pode melhorar" :
-        "⚠ ATENÇÃO - Aluno precisa de maior acompanhamento"
+      doc.setFontSize(8);
+      doc.text("================================", centerX, y, { align: "center" });
+      y += lineHeight;
+
+      // Trainer info
+      doc.text(`Personal: ${report.trainer.name}`, 5, y);
+      y += lineHeight;
+      if (report.trainer.cref) {
+        doc.text(`CREF: ${report.trainer.cref}`, 5, y);
+        y += lineHeight;
+      }
+      doc.text(`CPF: ${report.trainer.cpf}`, 5, y);
+      y += lineHeight;
+      if (report.trainer.phone) {
+        doc.text(`Tel: ${report.trainer.phone}`, 5, y);
+        y += lineHeight;
       }
       
-      Recomendações:
-      ${report.completion_rate < 60 ? 
-        "• Revisar objetivos e motivação do aluno\n      • Considerar ajustes no plano de treino\n      • Aumentar frequência de acompanhamento" :
-        report.completion_rate < 80 ?
-        "• Manter motivação atual\n      • Considerar desafios adicionais\n      • Revisar possíveis obstáculos" :
-        "• Parabenizar pelo excelente desempenho\n      • Considerar evolução dos exercícios\n      • Manter rotina estabelecida"
-      }
-      
-      ══════════════════════════════════════════════════════════════
-      Este documento foi gerado automaticamente pelo sistema
-      FitTrainer-Pro em ${new Date().toLocaleString('pt-BR')}
-      
-      Para dúvidas ou mais informações, entre em contato com
-      seu personal trainer.
-      ══════════════════════════════════════════════════════════════
-    `;
+      y += lineHeight;
+      doc.text("--- DADOS DO ALUNO ---", centerX, y, { align: "center" });
+      y += lineHeight;
+      doc.text(`Nome: ${report.student.name}`, 5, y);
+      y += lineHeight;
+      doc.text(`Período: ${report.startDate} a ${report.endDate}`, 5, y);
+      y += lineHeight * 2;
 
-    // Create and download the file
-    const blob = new Blob([reportContent], { type: 'text/plain; charset=utf-8' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = `comprovante-${report.student_name.replace(/\s+/g, '-')}-${format(new Date(), 'yyyy-MM-dd')}.txt`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
+      // Performance
+      doc.text("--- DESEMPENHO ---", centerX, y, { align: "center" });
+      y += lineHeight;
+      doc.text(`Treinos: ${report.exercisesCompleted}/${report.totalExercises}`, 5, y);
+      y += lineHeight;
+      doc.text(`Taxa: ${report.completionRate}%`, 5, y);
+      y += lineHeight;
+      doc.text(`Refeições: ${report.mealsCompleted}/${report.totalMeals}`, 5, y);
+      y += lineHeight * 2;
 
-    toast({
-      title: "Comprovante exportado",
-      description: `Comprovante de ${report.student_name} exportado com sucesso.`,
+      // Footer
+      doc.text("--- OBSERVAÇÕES ---", centerX, y, { align: "center" });
+      y += lineHeight;
+      doc.setFontSize(7);
+      doc.text(`Gerado em: ${new Date().toLocaleString('pt-BR')}`, 5, y);
+      y += lineHeight * 2;
+      
+      doc.text("Assinatura:", 5, y);
+      y += lineHeight;
+      doc.text("_______________________", 5, y);
+      y += lineHeight;
+      doc.text("Personal Trainer", 5, y);
+      y += lineHeight * 2;
+      
+      doc.text("================================", centerX, y, { align: "center" });
+
+      // Save
+      doc.save(`comprovante_${report.student.name}_${report.startDate}_${report.endDate}.pdf`);
+    }).catch(() => {
+      toast({
+        title: "Erro",
+        description: "Não foi possível gerar o PDF. Tente novamente.",
+        variant: "destructive"
+      });
     });
   };
 
@@ -387,20 +401,20 @@ const ReportsManager = ({ trainerId }: { trainerId: string }) => {
                     <div>
                       <CardTitle className="flex items-center gap-2">
                         <FileText className="h-5 w-5" />
-                        Relatório - {report.student_name}
+                        Relatório - {report.student.name}
                       </CardTitle>
                       <p className="text-sm text-muted-foreground">
-                        Período: {report.period_start} à {report.period_end}
+                        Período: {report.startDate} à {report.endDate}
                       </p>
                     </div>
                     <div className="flex gap-2">
                       <Badge 
                         variant={
-                          report.completion_rate >= 80 ? "default" :
-                          report.completion_rate >= 60 ? "secondary" : "destructive"
+                          report.completionRate >= 80 ? "default" :
+                          report.completionRate >= 60 ? "secondary" : "destructive"
                         }
                       >
-                        {report.completion_rate}% Conclusão
+                        {report.completionRate}% Conclusão
                       </Badge>
                       <Button
                         variant="outline"
@@ -421,7 +435,7 @@ const ReportsManager = ({ trainerId }: { trainerId: string }) => {
                         <span className="text-sm font-medium">Treinos</span>
                       </div>
                       <div className="text-lg font-bold">
-                        {report.completed_exercises}/{report.total_exercises}
+                        {report.exercisesCompleted}/{report.totalExercises}
                       </div>
                       <p className="text-xs text-muted-foreground">
                         Exercícios completados
@@ -434,7 +448,7 @@ const ReportsManager = ({ trainerId }: { trainerId: string }) => {
                         <span className="text-sm font-medium">Dieta</span>
                       </div>
                       <div className="text-lg font-bold">
-                        {report.diet_completions}
+                        {report.mealsCompleted}
                       </div>
                       <p className="text-xs text-muted-foreground">
                         Refeições registradas
@@ -446,9 +460,9 @@ const ReportsManager = ({ trainerId }: { trainerId: string }) => {
                         <TrendingUp className="h-4 w-4 text-warning" />
                         <span className="text-sm font-medium">Performance</span>
                       </div>
-                      <div className="text-lg font-bold">
-                        {report.completion_rate >= 80 ? "Excelente" :
-                         report.completion_rate >= 60 ? "Bom" : "Atenção"}
+                      <div className="text-lg font-bold text-primary">
+                        {report.completionRate >= 80 ? "Excelente" :
+                         report.completionRate >= 60 ? "Bom" : "Atenção"}
                       </div>
                       <p className="text-xs text-muted-foreground">
                         Avaliação geral
@@ -458,13 +472,13 @@ const ReportsManager = ({ trainerId }: { trainerId: string }) => {
 
                   <div className="mt-4 p-3 bg-muted/50 rounded">
                     <p className="text-sm">
-                      <strong>Dados do Aluno:</strong> {report.student_name}
-                      {report.student_email && ` • ${report.student_email}`}
-                      {report.student_phone && ` • ${report.student_phone}`}
+                      <strong>Dados do Aluno:</strong> {report.student.name}
+                      {report.student.email && ` • ${report.student.email}`}
+                      {report.student.phone && ` • ${report.student.phone}`}
                     </p>
                     <p className="text-sm">
-                      <strong>Personal Trainer:</strong> {report.trainer_name} ({report.trainer_cpf})
-                      {report.trainer_cref && ` • CREF: ${report.trainer_cref}`}
+                      <strong>Personal Trainer:</strong> {report.trainer.name} ({report.trainer.cpf})
+                      {report.trainer.cref && ` • CREF: ${report.trainer.cref}`}
                     </p>
                   </div>
                 </CardContent>
@@ -474,12 +488,16 @@ const ReportsManager = ({ trainerId }: { trainerId: string }) => {
         </div>
       )}
 
+      {/* Placeholder for no reports */}
       {reportData.length === 0 && !isLoading && (
         <Card>
-          <CardContent className="text-center py-8">
-            <BarChart3 className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-            <p className="text-muted-foreground">
-              Configure os filtros e gere relatórios de desempenho dos seus alunos.
+          <CardContent className="text-center py-12">
+            <Users className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+            <p className="text-lg font-medium text-muted-foreground">
+              Nenhum relatório gerado ainda
+            </p>
+            <p className="text-sm text-muted-foreground">
+              Configure os filtros e clique em "Gerar Relatório" para começar.
             </p>
           </CardContent>
         </Card>
