@@ -315,6 +315,19 @@ Gerado em: ${new Date().toLocaleString('pt-BR')}
               <Download className="h-4 w-4 mr-2" />
               Exportar
             </Button>
+            <div className="flex gap-2">
+              <Button 
+                onClick={() => window.location.href = `/student/${token}/diet`}
+                variant="secondary" 
+                size="sm"
+              >
+                Ver Dieta
+              </Button>
+              <Button onClick={exportWorkout} variant="outline" size="sm">
+                <Download className="h-4 w-4 mr-2" />
+                Exportar Treino
+              </Button>
+            </div>
           </div>
         </div>
       </header>

@@ -33,6 +33,7 @@ interface MealFood {
   carbs?: number;
   fat?: number;
   notes?: string;
+  isCompleted?: boolean;
 }
 
 interface Meal {
@@ -68,11 +69,11 @@ const StudentDiet = () => {
 
   useEffect(() => {
     if (token) {
-      loadStudentDietData();
+      loadStudentData();
     }
   }, [token]);
 
-  const loadStudentDietData = async () => {
+  const loadStudentData = async () => {
     try {
       setIsLoading(true);
 
@@ -154,12 +155,15 @@ const StudentDiet = () => {
       // Mark meals as completed
       dietData.meals.forEach((meal: any) => {
         meal.isCompleted = completedMealIds.has(meal.id);
+        meal.meal_foods.forEach((food: any) => {
+          food.isCompleted = meal.isCompleted;
+        });
       });
 
       setDietPlan(dietData as any);
 
     } catch (error) {
-      console.error("Error loading student diet data:", error);
+      console.error("Error loading student data:", error);
       toast({
         title: "Erro",
         description: "Erro ao carregar dados da dieta.",
@@ -184,42 +188,34 @@ const StudentDiet = () => {
       if (error) {
         toast({
           title: "Erro",
-          description: "Não foi possível marcar a refeição como realizada.",
+          description: "Não foi possível marcar a refeição como consumida.",
           variant: "destructive",
         });
         return;
       }
 
       toast({
-        title: "Parabéns! 🍽️",
-        description: "Refeição marcada como realizada!",
+        title: "Parabéns! 🎉",
+        description: "Refeição marcada como consumida!",
       });
 
       // Reload data to update completion status
-      loadStudentDietData();
+      loadStudentData();
     } catch (error) {
       console.error("Error marking meal as completed:", error);
     }
   };
 
-  const calculateMealTotals = (meal: Meal) => {
-    return meal.meal_foods.reduce(
-      (totals, food) => ({
-        calories: totals.calories + (food.calories || 0),
-        protein: totals.protein + (food.protein || 0),
-        carbs: totals.carbs + (food.carbs || 0),
-        fat: totals.fat + (food.fat || 0),
-      }),
-      { calories: 0, protein: 0, carbs: 0, fat: 0 }
-    );
-  };
-
   const exportDiet = () => {
     if (!dietPlan || !student) return;
 
+    const totalCalories = dietPlan.meals.reduce((total, meal) => 
+      total + meal.meal_foods.reduce((mealTotal, food) => 
+        mealTotal + (food.calories || 0), 0), 0);
+
     const content = `
 ═══════════════════════════════════════
-        COMPROVANTE DE DIETA
+       COMPROVANTE DE DIETA
 ═══════════════════════════════════════
 
 Personal Trainer: ${dietPlan.personal_trainer.name}
@@ -231,31 +227,29 @@ ID do Aluno: ${student.id}
 Plano Alimentar: ${dietPlan.name}
 Data: ${new Date().toLocaleDateString('pt-BR')}
 
-${dietPlan.description ? `Descrição: ${dietPlan.description}` : ''}
-
-VALORES DIÁRIOS:
-${dietPlan.daily_calories ? `• Calorias: ${dietPlan.daily_calories} kcal` : ''}
-${dietPlan.daily_protein ? `• Proteínas: ${dietPlan.daily_protein}g` : ''}
-${dietPlan.daily_carbs ? `• Carboidratos: ${dietPlan.daily_carbs}g` : ''}
-${dietPlan.daily_fat ? `• Gorduras: ${dietPlan.daily_fat}g` : ''}
+OBJETIVOS NUTRICIONAIS DIÁRIOS:
+${dietPlan.daily_calories ? `Calorias: ${dietPlan.daily_calories} kcal` : ''}
+${dietPlan.daily_protein ? `Proteínas: ${dietPlan.daily_protein}g` : ''}
+${dietPlan.daily_carbs ? `Carboidratos: ${dietPlan.daily_carbs}g` : ''}
+${dietPlan.daily_fat ? `Gorduras: ${dietPlan.daily_fat}g` : ''}
 
 REFEIÇÕES:
-${dietPlan.meals.map((meal, index) => {
-  const totals = calculateMealTotals(meal);
-  return `
+${dietPlan.meals.map((meal, index) => `
 ${index + 1}. ${meal.name} ${meal.time_of_day ? `(${meal.time_of_day})` : ''}
-   Status: ${meal.isCompleted ? '✅ REALIZADA' : '⏳ PENDENTE'}
+   Status: ${meal.isCompleted ? '✅ CONSUMIDA' : '⏳ PENDENTE'}
    
    Alimentos:
-${meal.meal_foods.map(food => `   • ${food.food_name}: ${food.quantity}${food.unit}${food.calories ? ` (${food.calories} kcal)` : ''}`).join('\n')}
-   
-   Totais da refeição:
-   • Calorias: ${totals.calories.toFixed(1)} kcal
-   • Proteínas: ${totals.protein.toFixed(1)}g
-   • Carboidratos: ${totals.carbs.toFixed(1)}g
-   • Gorduras: ${totals.fat.toFixed(1)}g
-`;
-}).join('\n')}
+${meal.meal_foods.map(food => `
+   • ${food.food_name} - ${food.quantity}${food.unit}
+     ${food.calories ? `Calorias: ${food.calories} kcal` : ''}
+     ${food.protein ? `Proteínas: ${food.protein}g` : ''}
+     ${food.carbs ? `Carboidratos: ${food.carbs}g` : ''}
+     ${food.fat ? `Gorduras: ${food.fat}g` : ''}
+     ${food.notes ? `Obs: ${food.notes}` : ''}
+`).join('')}
+`).join('\n')}
+
+Total Calculado do Dia: ${totalCalories} kcal
 
 ════════════════════════════════════════
 
@@ -299,6 +293,12 @@ Gerado em: ${new Date().toLocaleString('pt-BR')}
     );
   }
 
+  const totalDayCalories = dietPlan.meals.reduce((total, meal) => 
+    total + meal.meal_foods.reduce((mealTotal, food) => 
+      mealTotal + (food.calories || 0), 0), 0);
+
+  const completedMeals = dietPlan.meals.filter(meal => meal.isCompleted).length;
+
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
@@ -306,12 +306,12 @@ Gerado em: ${new Date().toLocaleString('pt-BR')}
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <Apple className="h-8 w-8 text-primary" />
+              <Apple className="h-8 w-8 text-success" />
               <div>
                 <h1 className="text-2xl font-bold text-primary">FitTrainer-Pro</h1>
                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
                   <User className="h-4 w-4" />
-                  {student.name}
+                  {student.name} - Plano Alimentar
                 </div>
               </div>
             </div>
@@ -319,176 +319,178 @@ Gerado em: ${new Date().toLocaleString('pt-BR')}
               <Download className="h-4 w-4 mr-2" />
               Exportar
             </Button>
+            <div className="flex gap-2">
+              <Button 
+                onClick={() => window.location.href = `/student/${token}`}
+                variant="secondary" 
+                size="sm"
+              >
+                Ver Treino
+              </Button>
+              <Button onClick={exportDiet} variant="outline" size="sm">
+                <Download className="h-4 w-4 mr-2" />
+                Exportar Dieta
+              </Button>
+            </div>
           </div>
         </div>
       </header>
 
       <div className="container mx-auto px-4 py-6">
-        {/* Navigation */}
-        <div className="flex gap-2 mb-6">
-          <Button 
-            variant="outline" 
-            size="sm"
-            onClick={() => window.location.pathname = `/student/${token}`}
-          >
-            🏋️‍♂️ Treinos
-          </Button>
-          <Button 
-            variant="default" 
-            size="sm"
-            onClick={() => window.location.pathname = `/student/${token}/diet`}
-          >
-            🍎 Dieta
-          </Button>
-        </div>
         {/* Diet Plan Info */}
         <Card className="mb-6">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <Target className="h-5 w-5 text-primary" />
+              <Target className="h-5 w-5 text-success" />
               {dietPlan.name}
             </CardTitle>
             {dietPlan.description && (
               <p className="text-muted-foreground">{dietPlan.description}</p>
             )}
           </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-              {dietPlan.daily_calories && (
-                <div className="text-center">
-                  <p className="text-2xl font-bold text-primary">{dietPlan.daily_calories}</p>
-                  <p className="text-muted-foreground">Calorias</p>
-                </div>
-              )}
-              {dietPlan.daily_protein && (
-                <div className="text-center">
-                  <p className="text-2xl font-bold text-secondary">{dietPlan.daily_protein}g</p>
-                  <p className="text-muted-foreground">Proteínas</p>
-                </div>
-              )}
-              {dietPlan.daily_carbs && (
-                <div className="text-center">
-                  <p className="text-2xl font-bold text-warning">{dietPlan.daily_carbs}g</p>
-                  <p className="text-muted-foreground">Carboidratos</p>
-                </div>
-              )}
-              {dietPlan.daily_fat && (
-                <div className="text-center">
-                  <p className="text-2xl font-bold text-success">{dietPlan.daily_fat}g</p>
-                  <p className="text-muted-foreground">Gorduras</p>
-                </div>
-              )}
-            </div>
-            <p className="text-sm text-muted-foreground mt-4">
+          <CardContent className="space-y-4">
+            <p className="text-sm text-muted-foreground">
               Personal Trainer: <strong>{dietPlan.personal_trainer.name}</strong>
               {dietPlan.personal_trainer.cref && (
                 <span> - CREF: {dietPlan.personal_trainer.cref}</span>
               )}
             </p>
+            
+            {/* Nutritional Goals */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              {dietPlan.daily_calories && (
+                <div className="text-center p-3 bg-muted/50 rounded-lg">
+                  <p className="text-lg font-bold text-primary">{dietPlan.daily_calories}</p>
+                  <p className="text-xs text-muted-foreground">kcal/dia</p>
+                </div>
+              )}
+              {dietPlan.daily_protein && (
+                <div className="text-center p-3 bg-muted/50 rounded-lg">
+                  <p className="text-lg font-bold text-secondary">{dietPlan.daily_protein}g</p>
+                  <p className="text-xs text-muted-foreground">Proteínas</p>
+                </div>
+              )}
+              {dietPlan.daily_carbs && (
+                <div className="text-center p-3 bg-muted/50 rounded-lg">
+                  <p className="text-lg font-bold text-warning">{dietPlan.daily_carbs}g</p>
+                  <p className="text-xs text-muted-foreground">Carboidratos</p>
+                </div>
+              )}
+              {dietPlan.daily_fat && (
+                <div className="text-center p-3 bg-muted/50 rounded-lg">
+                  <p className="text-lg font-bold text-destructive">{dietPlan.daily_fat}g</p>
+                  <p className="text-xs text-muted-foreground">Gorduras</p>
+                </div>
+              )}
+            </div>
+
+            {/* Progress Summary */}
+            <div className="flex items-center gap-4 p-4 bg-muted/30 rounded-lg">
+              <div>
+                <p className="text-sm text-muted-foreground">Progresso Hoje</p>
+                <p className="font-semibold">
+                  {completedMeals} de {dietPlan.meals.length} refeições
+                </p>
+              </div>
+              <div>
+                <p className="text-sm text-muted-foreground">Total Calculado</p>
+                <p className="font-semibold">{totalDayCalories} kcal</p>
+              </div>
+            </div>
           </CardContent>
         </Card>
 
         {/* Meals */}
         <div className="space-y-4">
-          {dietPlan.meals.map((meal, index) => {
-            const totals = calculateMealTotals(meal);
-            return (
-              <Card key={meal.id}>
-                <CardHeader>
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <Utensils className="h-5 w-5 text-secondary" />
-                      <div>
-                        <CardTitle className="flex items-center gap-2">
-                          {meal.name}
-                          {meal.time_of_day && (
-                            <Badge variant="outline" className="flex items-center gap-1">
-                              <Clock className="h-3 w-3" />
-                              {meal.time_of_day}
-                            </Badge>
-                          )}
-                          {meal.isCompleted && (
-                            <Badge className="bg-success text-success-foreground">
-                              <CheckCircle className="h-3 w-3 mr-1" />
-                              Realizada
-                            </Badge>
-                          )}
-                        </CardTitle>
+          {dietPlan.meals.map((meal, index) => (
+            <Card key={meal.id}>
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Utensils className="h-5 w-5 text-secondary" />
+                    <CardTitle className="text-lg">{meal.name}</CardTitle>
+                    {meal.time_of_day && (
+                      <div className="flex items-center gap-1 text-sm text-muted-foreground">
+                        <Clock className="h-3 w-3" />
+                        {meal.time_of_day}
+                      </div>
+                    )}
+                    {meal.isCompleted && (
+                      <Badge className="bg-success text-success-foreground">
+                        <CheckCircle className="h-3 w-3 mr-1" />
+                        Consumida
+                      </Badge>
+                    )}
+                  </div>
+                  
+                  {!meal.isCompleted && (
+                    <Button
+                      onClick={() => markMealAsCompleted(meal.id)}
+                      size="sm"
+                      className="bg-success hover:bg-success/90 text-success-foreground"
+                    >
+                      <CheckCircle className="h-4 w-4 mr-2" />
+                      Marcar como Consumida
+                    </Button>
+                  )}
+                </div>
+              </CardHeader>
+              
+              <CardContent className="space-y-3">
+                {meal.meal_foods.map((food, foodIndex) => (
+                  <div key={food.id} className="space-y-2">
+                    <div className="flex items-start justify-between">
+                      <div className="space-y-1">
+                        <h4 className="font-medium">{food.food_name}</h4>
+                        <p className="text-sm text-muted-foreground">
+                          Quantidade: <strong>{food.quantity}{food.unit}</strong>
+                        </p>
+                        
+                        {(food.calories || food.protein || food.carbs || food.fat) && (
+                          <div className="grid grid-cols-2 md:grid-cols-4 gap-2 text-xs">
+                            {food.calories && (
+                              <div>
+                                <span className="text-muted-foreground">Kcal:</span>
+                                <span className="ml-1 font-medium">{food.calories}</span>
+                              </div>
+                            )}
+                            {food.protein && (
+                              <div>
+                                <span className="text-muted-foreground">Prot:</span>
+                                <span className="ml-1 font-medium">{food.protein}g</span>
+                              </div>
+                            )}
+                            {food.carbs && (
+                              <div>
+                                <span className="text-muted-foreground">Carb:</span>
+                                <span className="ml-1 font-medium">{food.carbs}g</span>
+                              </div>
+                            )}
+                            {food.fat && (
+                              <div>
+                                <span className="text-muted-foreground">Gord:</span>
+                                <span className="ml-1 font-medium">{food.fat}g</span>
+                              </div>
+                            )}
+                          </div>
+                        )}
+                        
+                        {food.notes && (
+                          <p className="text-sm text-muted-foreground">
+                            <strong>Obs:</strong> {food.notes}
+                          </p>
+                        )}
                       </div>
                     </div>
                     
-                    {!meal.isCompleted && (
-                      <Button
-                        onClick={() => markMealAsCompleted(meal.id)}
-                        size="sm"
-                        className="bg-success hover:bg-success/90 text-success-foreground"
-                      >
-                        <CheckCircle className="h-4 w-4 mr-2" />
-                        Marcar como Feita
-                      </Button>
+                    {foodIndex < meal.meal_foods.length - 1 && (
+                      <Separator className="my-2" />
                     )}
                   </div>
-                </CardHeader>
-                
-                <CardContent className="space-y-4">
-                  {/* Foods */}
-                  <div className="space-y-2">
-                    {meal.meal_foods.map((food, foodIndex) => (
-                      <div key={food.id} className="flex justify-between items-center">
-                        <div className="space-y-1">
-                          <p className="font-medium">{food.food_name}</p>
-                          <p className="text-sm text-muted-foreground">
-                            {food.quantity}{food.unit}
-                            {food.calories && ` • ${food.calories} kcal`}
-                          </p>
-                          {food.notes && (
-                            <p className="text-xs text-muted-foreground italic">
-                              {food.notes}
-                            </p>
-                          )}
-                        </div>
-                        
-                        {(food.protein || food.carbs || food.fat) && (
-                          <div className="text-xs text-muted-foreground">
-                            <div className="grid grid-cols-3 gap-2 text-center">
-                              {food.protein && <span>P: {food.protein}g</span>}
-                              {food.carbs && <span>C: {food.carbs}g</span>}
-                              {food.fat && <span>G: {food.fat}g</span>}
-                            </div>
-                          </div>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-
-                  <Separator />
-
-                  {/* Meal Totals */}
-                  <div className="bg-muted/50 rounded-lg p-3">
-                    <p className="text-sm font-medium mb-2">Totais da Refeição:</p>
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-2 text-sm">
-                      <div className="text-center">
-                        <span className="text-primary font-bold">{totals.calories.toFixed(0)}</span>
-                        <p className="text-xs text-muted-foreground">kcal</p>
-                      </div>
-                      <div className="text-center">
-                        <span className="text-secondary font-bold">{totals.protein.toFixed(1)}g</span>
-                        <p className="text-xs text-muted-foreground">Proteína</p>
-                      </div>
-                      <div className="text-center">
-                        <span className="text-warning font-bold">{totals.carbs.toFixed(1)}g</span>
-                        <p className="text-xs text-muted-foreground">Carbo</p>
-                      </div>
-                      <div className="text-center">
-                        <span className="text-success font-bold">{totals.fat.toFixed(1)}g</span>
-                        <p className="text-xs text-muted-foreground">Gordura</p>
-                      </div>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            );
-          })}
+                ))}
+              </CardContent>
+            </Card>
+          ))}
         </div>
       </div>
     </div>
