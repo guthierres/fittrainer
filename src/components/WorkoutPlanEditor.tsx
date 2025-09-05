@@ -466,7 +466,7 @@ const WorkoutPlanEditor = ({
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-2 md:p-4">
-      <Card className="w-full max-w-7xl h-[95vh] overflow-hidden">
+      <Card className="w-full max-w-[95vw] h-[98vh] overflow-hidden shadow-2xl">
         <CardHeader className="pb-4">
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
             <div className="flex items-center gap-3">
@@ -501,18 +501,18 @@ const WorkoutPlanEditor = ({
           </div>
         </CardHeader>
 
-        <CardContent className="overflow-y-auto h-[calc(95vh-80px)] p-6">
+        <CardContent className="overflow-y-auto h-[calc(98vh-140px)] p-6">
           <Tabs value={activeTab} onValueChange={setActiveTab}>
             <div className="w-full mb-6">
-              <div className="flex flex-wrap items-center gap-3 p-4 bg-muted/50 rounded-lg">
+              <div className="flex flex-wrap items-center gap-2 p-4 bg-muted/30 rounded-lg border">
                 <Button
                   variant={activeTab === "plan" ? "default" : "outline"}
                   size="default"
                   onClick={() => setActiveTab("plan")}
-                  className="flex items-center gap-2 min-w-fit px-4 py-2"
+                  className="flex items-center gap-2 min-w-fit px-4 py-2 h-10"
                 >
                   <Calendar className="h-4 w-4" />
-                  <span>Plano Geral</span>
+                  <span className="font-medium">Plano Geral</span>
                 </Button>
                 
                 {planData.sessions.map(session => (
@@ -521,14 +521,28 @@ const WorkoutPlanEditor = ({
                     variant={activeTab === `session-${session.day_of_week}` ? "default" : "outline"}
                     size="default"
                     onClick={() => setActiveTab(`session-${session.day_of_week}`)}
-                    className="flex flex-col items-center gap-2 h-auto py-3 px-4 min-w-[120px]"
+                    className="flex items-center gap-2 min-w-fit px-4 py-2 h-10 relative"
                   >
-                    <span className="text-sm font-medium">
+                    <Dumbbell className="h-4 w-4" />
+                    <span className="font-medium">
                       {DAYS_OF_WEEK.find(d => d.value === session.day_of_week)?.label}
                     </span>
-                    <Badge variant="secondary" className="text-xs px-2 py-1">
-                      {session.exercises.length} exercícios
-                    </Badge>
+                    {session.exercises.length > 0 && (
+                      <Badge variant="secondary" className="ml-1 text-xs px-1 py-0 h-5">
+                        {session.exercises.length}
+                      </Badge>
+                    )}
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        removeSession(session.day_of_week);
+                      }}
+                      className="ml-2 h-6 w-6 p-0 text-destructive hover:text-destructive hover:bg-destructive/10"
+                    >
+                      <X className="h-3 w-3" />
+                    </Button>
                   </Button>
                 ))}
                 
@@ -536,10 +550,10 @@ const WorkoutPlanEditor = ({
                   variant={activeTab === "add-days" ? "default" : "outline"}
                   size="default"
                   onClick={() => setActiveTab("add-days")}
-                  className="flex flex-col items-center gap-2 h-auto py-3 px-4 min-w-[120px] bg-primary/10 hover:bg-primary/20 border-2 border-dashed border-primary/30 hover:border-primary/50"
+                  className="flex items-center gap-2 min-w-fit px-4 py-2 h-10 border-dashed border-2 hover:border-primary"
                 >
-                  <Plus className="h-5 w-5" />
-                  <span className="text-sm font-medium">Adicionar Dia</span>
+                  <Plus className="h-4 w-4" />
+                  <span className="font-medium">Adicionar Dia</span>
                 </Button>
               </div>
             </div>
