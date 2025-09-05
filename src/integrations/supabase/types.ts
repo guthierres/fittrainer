@@ -153,6 +153,7 @@ export type Database = {
           instructions: string | null
           muscle_groups: string[] | null
           name: string
+          personal_trainer_id: string | null
         }
         Insert: {
           category_id: string
@@ -163,6 +164,7 @@ export type Database = {
           instructions?: string | null
           muscle_groups?: string[] | null
           name: string
+          personal_trainer_id?: string | null
         }
         Update: {
           category_id?: string
@@ -173,6 +175,7 @@ export type Database = {
           instructions?: string | null
           muscle_groups?: string[] | null
           name?: string
+          personal_trainer_id?: string | null
         }
         Relationships: [
           {
@@ -180,6 +183,13 @@ export type Database = {
             columns: ["category_id"]
             isOneToOne: false
             referencedRelation: "exercise_categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "exercises_personal_trainer_id_fkey"
+            columns: ["personal_trainer_id"]
+            isOneToOne: false
+            referencedRelation: "personal_trainers"
             referencedColumns: ["id"]
           },
         ]
