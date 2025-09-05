@@ -465,8 +465,8 @@ const WorkoutPlanEditor = ({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-      <Card className="w-full max-w-6xl max-h-[90vh] overflow-hidden">
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-2 md:p-4">
+      <Card className="w-full max-w-7xl h-[95vh] overflow-hidden">
         <CardHeader>
           <div className="flex items-center justify-between">
             <CardTitle className="flex items-center gap-2">
@@ -479,50 +479,45 @@ const WorkoutPlanEditor = ({
           </div>
         </CardHeader>
 
-        <CardContent className="overflow-y-auto max-h-[calc(90vh-120px)]">
+        <CardContent className="overflow-y-auto h-[calc(95vh-80px)] p-6">
           <Tabs value={activeTab} onValueChange={setActiveTab}>
             <div className="w-full mb-6">
-              <div className="flex flex-wrap items-center gap-2 p-2 bg-muted/50 rounded-lg">
+              <div className="flex flex-wrap items-center gap-3 p-4 bg-muted/50 rounded-lg">
                 <Button
                   variant={activeTab === "plan" ? "default" : "outline"}
-                  size="sm"
+                  size="default"
                   onClick={() => setActiveTab("plan")}
-                  className="flex items-center gap-2 min-w-fit"
+                  className="flex items-center gap-2 min-w-fit px-4 py-2"
                 >
                   <Calendar className="h-4 w-4" />
-                  <span className="hidden sm:inline">Plano Geral</span>
-                  <span className="sm:hidden">Plano</span>
+                  <span>Plano Geral</span>
                 </Button>
                 
                 {planData.sessions.map(session => (
                   <Button
                     key={session.day_of_week}
                     variant={activeTab === `session-${session.day_of_week}` ? "default" : "outline"}
-                    size="sm"
+                    size="default"
                     onClick={() => setActiveTab(`session-${session.day_of_week}`)}
-                    className="flex flex-col items-center gap-1 h-auto py-2 px-3 min-w-[80px] sm:min-w-[100px]"
+                    className="flex flex-col items-center gap-2 h-auto py-3 px-4 min-w-[120px]"
                   >
-                    <span className="text-xs font-medium">
-                      {DAYS_OF_WEEK.find(d => d.value === session.day_of_week)?.label.slice(0, 3)}
-                    </span>
-                    <span className="hidden sm:block text-xs text-muted-foreground">
+                    <span className="text-sm font-medium">
                       {DAYS_OF_WEEK.find(d => d.value === session.day_of_week)?.label}
                     </span>
-                    <Badge variant="secondary" className="text-xs px-1.5 py-0.5">
-                      {session.exercises.length}
+                    <Badge variant="secondary" className="text-xs px-2 py-1">
+                      {session.exercises.length} exercícios
                     </Badge>
                   </Button>
                 ))}
                 
                 <Button
                   variant={activeTab === "add-days" ? "default" : "outline"}
-                  size="sm"
+                  size="default"
                   onClick={() => setActiveTab("add-days")}
-                  className="flex flex-col items-center gap-1 h-auto py-2 px-3 min-w-[80px] sm:min-w-[100px] bg-primary/10 hover:bg-primary/20 border-2 border-dashed border-primary/30 hover:border-primary/50"
+                  className="flex flex-col items-center gap-2 h-auto py-3 px-4 min-w-[120px] bg-primary/10 hover:bg-primary/20 border-2 border-dashed border-primary/30 hover:border-primary/50"
                 >
-                  <Plus className="h-4 w-4" />
-                  <span className="text-xs font-medium">Adicionar</span>
-                  <span className="hidden sm:block text-xs">Dia</span>
+                  <Plus className="h-5 w-5" />
+                  <span className="text-sm font-medium">Adicionar Dia</span>
                 </Button>
               </div>
             </div>
@@ -863,19 +858,24 @@ const WorkoutPlanEditor = ({
           </Tabs>
 
           {/* Action Buttons */}
-          <div className="flex flex-col sm:flex-row gap-2 pt-6 border-t">
-            <Button type="button" variant="outline" onClick={onClose} className="flex-1">
+          <div className="flex flex-col sm:flex-row gap-3 pt-6 mt-6 border-t bg-background/50 p-4 rounded-lg">
+            <Button 
+              type="button" 
+              variant="outline" 
+              onClick={onClose} 
+              className="flex-1 h-12 text-base"
+            >
               Cancelar
             </Button>
             <Button 
               onClick={handleSave} 
-              className="flex-1" 
+              className="flex-1 h-12 text-base" 
               disabled={isLoading}
             >
               {isLoading ? "Salvando..." : (
                 <>
-                  <Save className="h-4 w-4 mr-2" />
-                  Salvar Plano
+                  <Save className="h-5 w-5 mr-2" />
+                  Salvar Plano de Treino
                 </>
               )}
             </Button>
