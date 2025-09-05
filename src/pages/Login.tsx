@@ -44,21 +44,28 @@ const Login = () => {
     setIsLoading(true);
 
     try {
+      // Remove formatting from CPF for database query (store as numbers only)
+      const cleanCPF = cpf.replace(/\D/g, "");
+      
       // Convert DD/MM/YYYY to YYYY-MM-DD for database query
       const [day, month, year] = birthDate.split("/");
-      const dbBirthDate = `${year}-${month}-${day}`;
+      const dbBirthDate = `${year}-${month.padStart(2, "0")}-${day.padStart(2, "0")}`;
+
+      console.log("Attempting login with:", { cleanCPF, dbBirthDate });
 
       const { data, error } = await supabase
         .from("personal_trainers")
         .select("*")
-        .eq("cpf", cpf)
+        .eq("cpf", cleanCPF)
         .eq("birth_date", dbBirthDate)
+        .eq("active", true) // Only allow active trainers to login
         .single();
 
       if (error || !data) {
+        console.error("Login error:", error);
         toast({
           title: "Erro no login",
-          description: "CPF ou data de nascimento inválidos.",
+          description: "CPF ou data de nascimento inválidos, ou personal trainer inativo.",
           variant: "destructive",
         });
         return;
@@ -72,6 +79,7 @@ const Login = () => {
       });
       navigate("/dashboard");
     } catch (error) {
+      console.error("Login exception:", error);
       toast({
         title: "Erro no login",
         description: "Ocorreu um erro inesperado. Tente novamente.",

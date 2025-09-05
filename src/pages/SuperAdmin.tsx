@@ -23,6 +23,7 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import CreatePersonalTrainer from "@/components/CreatePersonalTrainer";
+import PersonalTrainerTestLogin from "@/components/PersonalTrainerTestLogin";
 
 interface PersonalTrainer {
   id: string;
@@ -381,8 +382,9 @@ const SuperAdmin = () => {
         </div>
 
         <Tabs defaultValue="trainers" className="space-y-4">
-          <TabsList className="grid grid-cols-2 w-full max-w-md">
+          <TabsList className="grid grid-cols-3 w-full max-w-md">
             <TabsTrigger value="trainers">Personal Trainers</TabsTrigger>
+            <TabsTrigger value="login-test">Teste de Login</TabsTrigger>
             <TabsTrigger value="reports">Relatórios</TabsTrigger>
           </TabsList>
 
@@ -453,6 +455,10 @@ const SuperAdmin = () => {
                 </Card>
               ))}
             </div>
+          </TabsContent>
+
+          <TabsContent value="login-test" className="space-y-4">
+            <PersonalTrainerTestLogin onClose={() => {}} />
           </TabsContent>
 
           <TabsContent value="reports" className="space-y-4">
