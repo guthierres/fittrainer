@@ -12,9 +12,16 @@ export default defineConfig(({ mode }) => ({
   },
   build: {
     assetsDir: "assets",
+    outDir: "dist",
+    emptyOutDir: true,
+    sourcemap: false,
     rollupOptions: {
       output: {
-        manualChunks: undefined,
+        manualChunks: {
+          vendor: ['react', 'react-dom'],
+          supabase: ['@supabase/supabase-js'],
+          ui: ['@radix-ui/react-dialog', '@radix-ui/react-tabs', '@radix-ui/react-select']
+        },
       },
     },
   },

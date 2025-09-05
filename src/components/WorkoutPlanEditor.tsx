@@ -467,15 +467,37 @@ const WorkoutPlanEditor = ({
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-2 md:p-4">
       <Card className="w-full max-w-7xl h-[95vh] overflow-hidden">
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <CardTitle className="flex items-center gap-2">
-              <Dumbbell className="h-5 w-5" />
-              Editar Plano de Treino
-            </CardTitle>
-            <Button variant="outline" size="sm" onClick={onClose}>
-              <X className="h-4 w-4" />
-            </Button>
+        <CardHeader className="pb-4">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-primary/10 rounded-full">
+                <Dumbbell className="h-5 w-5 text-primary" />
+              </div>
+              <div>
+                <CardTitle className="text-lg sm:text-xl">Editar Plano de Treino</CardTitle>
+                <p className="text-sm text-muted-foreground">
+                  Modifique os exercícios e configurações do plano
+                </p>
+              </div>
+            </div>
+            <div className="flex items-center gap-2 w-full sm:w-auto">
+              <Button 
+                variant="outline" 
+                onClick={onClose}
+                className="flex-1 sm:flex-none"
+              >
+                <X className="h-4 w-4 mr-2" />
+                Fechar
+              </Button>
+              <Button 
+                onClick={handleSave} 
+                disabled={isLoading}
+                className="flex-1 sm:flex-none"
+              >
+                <Save className="h-4 w-4 mr-2" />
+                {isLoading ? "Salvando..." : "Salvar"}
+              </Button>
+            </div>
           </div>
         </CardHeader>
 
@@ -858,23 +880,29 @@ const WorkoutPlanEditor = ({
           </Tabs>
 
           {/* Action Buttons */}
-          <div className="flex flex-col sm:flex-row gap-3 pt-6 mt-6 border-t bg-background/50 p-4 rounded-lg">
+          <div className="flex flex-col sm:flex-row gap-3 pt-6 mt-6 border-t bg-muted/20 p-4 rounded-lg sticky bottom-0 bg-background/95 backdrop-blur-sm shadow-lg">
             <Button 
               type="button" 
               variant="outline" 
               onClick={onClose} 
-              className="flex-1 h-12 text-base"
+              className="flex-1 h-12 text-base font-medium border-2"
             >
-              Cancelar
+              <X className="h-4 w-4 mr-2" />
+              Cancelar e Fechar
             </Button>
             <Button 
               onClick={handleSave} 
-              className="flex-1 h-12 text-base" 
-              disabled={isLoading}
+              className="flex-1 h-12 text-base font-medium bg-primary hover:bg-primary/90" 
+              disabled={isLoading || !planData.name.trim() || planData.sessions.length === 0}
             >
-              {isLoading ? "Salvando..." : (
+              {isLoading ? (
                 <>
-                  <Save className="h-5 w-5 mr-2" />
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                  Salvando Alterações...
+                </>
+              ) : (
+                <>
+                  <Save className="h-4 w-4 mr-2" />
                   Salvar Plano de Treino
                 </>
               )}
