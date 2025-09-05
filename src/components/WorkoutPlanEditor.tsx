@@ -481,17 +481,27 @@ const WorkoutPlanEditor = ({
 
         <CardContent className="overflow-y-auto max-h-[calc(90vh-120px)]">
           <Tabs value={activeTab} onValueChange={setActiveTab}>
-            <TabsList className="flex w-full overflow-x-auto">
-              <TabsTrigger value="plan">Plano</TabsTrigger>
+            <TabsList className="grid w-full grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-1 h-auto">
+              <TabsTrigger value="plan" className="text-xs md:text-sm">Plano</TabsTrigger>
               {planData.sessions.map(session => (
-                <TabsTrigger key={session.day_of_week} value={`session-${session.day_of_week}`}>
-                  {DAYS_OF_WEEK.find(d => d.value === session.day_of_week)?.label.slice(0, 3)}
-                  <Badge variant="secondary" className="ml-1 text-xs">{session.exercises.length}</Badge>
+                <TabsTrigger 
+                  key={session.day_of_week} 
+                  value={`session-${session.day_of_week}`}
+                  className="text-xs md:text-sm flex flex-col items-center gap-1 p-2 h-auto"
+                >
+                  <span className="hidden md:inline">
+                    {DAYS_OF_WEEK.find(d => d.value === session.day_of_week)?.label}
+                  </span>
+                  <span className="md:hidden">
+                    {DAYS_OF_WEEK.find(d => d.value === session.day_of_week)?.label.slice(0, 3)}
+                  </span>
+                  <Badge variant="secondary" className="text-xs">{session.exercises.length}</Badge>
                 </TabsTrigger>
               ))}
-              <TabsTrigger value="add-days">
-                <Plus className="h-4 w-4 mr-1" />
-                Adicionar Dias
+              <TabsTrigger value="add-days" className="text-xs md:text-sm flex flex-col items-center gap-1 p-2 h-auto">
+                <Plus className="h-3 w-3 md:h-4 md:w-4" />
+                <span className="hidden md:inline">Adicionar</span>
+                <span className="md:hidden">+</span>
               </TabsTrigger>
             </TabsList>
 
